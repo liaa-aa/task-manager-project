@@ -8,7 +8,7 @@ import (
 	"github.com/liaa-aa/task-manager-project/backend/internal/model"
 )
 
-type userRepository interface{
+type UserRepository interface{
 	CreateUser(ctx context.Context, user *model.User) error
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 	FindByID(ctx context.Context, id string) (*model.User, error)
@@ -18,7 +18,7 @@ type userRepositoryPostgres struct {
 	db *sql.DB
 }
 
-func NewUserRepositoryPostgres(db *sql.DB) userRepository {
+func NewUserRepositoryPostgres(db *sql.DB) UserRepository {
 	return &userRepositoryPostgres{db: db}
 }
 
