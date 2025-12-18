@@ -1,0 +1,21 @@
+# ========================
+# ENV & SECRETS
+# ========================
+.env
+.env.local
+.env.*.local
+
+# ========================
+# GO
+# ========================
+# Binary output
+*.exe
+*.out
+*.test
+*.bin
+
+# Go cache
+/bin/
+/dist/
+/tmp/
+
