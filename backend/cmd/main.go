@@ -1,7 +1,7 @@
 package main
 
 import (
-	"backend/internal/database"
+	"github.com/liaa-aa/task-manager-project/backend/internal/database"
 	"log"
 
 	"github.com/joho/godotenv"
