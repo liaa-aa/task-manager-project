@@ -9,9 +9,9 @@ import (
 )
 
 type userRepository interface{
-	createUser(ctx context.Context, user *model.User) error
-	findByEmail(ctx context.Context, email string) (*model.User, error)
-	findByID(ctx context.Context, id string) (*model.User, error)
+	CreateUser(ctx context.Context, user *model.User) error
+	FindByEmail(ctx context.Context, email string) (*model.User, error)
+	FindByID(ctx context.Context, id string) (*model.User, error)
 }
 
 type userRepositoryPostgres struct {
@@ -22,7 +22,7 @@ func NewUserRepositoryPostgres(db *sql.DB) userRepository {
 	return &userRepositoryPostgres{db: db}
 }
 
-func (r *userRepositoryPostgres) createUser(
+func (r *userRepositoryPostgres) CreateUser(
 	ctx context.Context, 
 	user *model.User,
 	)error { 
@@ -47,7 +47,7 @@ func (r *userRepositoryPostgres) createUser(
 	return nil
 }
 
-func (r *userRepositoryPostgres) findByEmail(
+func (r *userRepositoryPostgres) FindByEmail(
 	ctx context.Context,
 	email string,
 	) (*model.User, error) {
@@ -78,7 +78,7 @@ func (r *userRepositoryPostgres) findByEmail(
 		return &user, nil
 }
 
-func (r *userRepositoryPostgres) findByID(
+func (r *userRepositoryPostgres) FindByID(
 	ctx context.Context,
 	id string,
 	) (*model.User, error){
