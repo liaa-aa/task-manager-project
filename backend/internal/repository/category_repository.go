@@ -8,8 +8,8 @@ import (
 )
 
 type CategoryRepository interface {
-	ExistOwned(ctx context.Context, categoryID, userID int) (bool, error)
-	GetByName(ctx context.Context, name string, userID int) (*model.Category, error)
+	ExistOwned(ctx context.Context, categoryID, userID string) (bool, error)
+	GetByName(ctx context.Context, name string, userID string) (*model.Category, error)
 	Create(ctx context.Context, category *model.Category) error
 }
 
@@ -17,7 +17,11 @@ type CategoryRepositoryPostgres struct {
 	db *sql.DB
 }
 
-func (r *CategoryRepositoryPostgres) ExistOwned(ctx context.Context, categoryID, userID int) (bool, error) {
+func NewCategoryRepository(db *sql.DB) CategoryRepository {
+	return &CategoryRepositoryPostgres{db: db}
+}
+
+func (r *CategoryRepositoryPostgres) ExistOwned(ctx context.Context, categoryID, userID string) (bool, error) {
 	var ok bool
 	query := `
 	SELECT EXISTS (
@@ -30,7 +34,7 @@ func (r *CategoryRepositoryPostgres) ExistOwned(ctx context.Context, categoryID,
 	return ok, nil
 }
 
-func (r *CategoryRepositoryPostgres) GetByName(ctx context.Context, name string, userID int) (*model.Category, error) {
+func (r *CategoryRepositoryPostgres) GetByName(ctx context.Context, name string, userID string) (*model.Category, error) {
 	query := `SELECT id, name, user_id, created_at FROM categories WHERE name = $1 AND user_id = $2`
 	var c model.Category
 	err := r.db.QueryRowContext(ctx, query, name, userID).Scan(&c.ID, &c.Name, &c.UserID, &c.CreatedAt)

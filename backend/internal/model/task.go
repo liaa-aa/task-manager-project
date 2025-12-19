@@ -6,8 +6,8 @@ type Task struct {
 	ID          string     `json:"id"`
 	UserID      string     `json:"user_id"`
 	CategoryID  *string    `json:"category_id,omitempty"`
-	StatusID    int        `json:"status_id"`
-	PriorityID  int        `json:"priority_id"`
+	StatusID    string     `json:"status_id"`
+	PriorityID  string     `json:"priority_id"`
 	Title       string     `json:"title"`
 	Description *string    `json:"description,omitempty"`
 	DueDate     *time.Time `json:"due_date,omitempty"`

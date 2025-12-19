@@ -6,19 +6,19 @@ import (
 )
 
 type StatusPrioritiesRepository interface {
-	StatusExist(ctx context.Context, statusID, userID int) (bool, error)
-	PrioritiesExist(ctx context.Context, priorityID, userID int) (bool, error)
+	StatusExist(ctx context.Context, statusID, userID string) (bool, error)
+	PrioritiesExist(ctx context.Context, priorityID, userID string) (bool, error)
 }
 
 type StatusPrioritiesRepositoryPostgres struct {
 	db *sql.DB
 }
 
-func NewStatusPrioritiesRepository(db *sql.DB) StatusPrioritiesRepository {
+func NewStatusPrioritiesRepositoryPostgres(db *sql.DB) StatusPrioritiesRepository {
 	return &StatusPrioritiesRepositoryPostgres{db: db}
 }
 
-func (r *StatusPrioritiesRepositoryPostgres) StatusExist(ctx context.Context, statusID, userID int) (bool, error) {
+func (r *StatusPrioritiesRepositoryPostgres) StatusExist(ctx context.Context, statusID, userID string) (bool, error) {
 	var ok bool
 	query := `
 	SELECT EXISTS (
@@ -28,7 +28,7 @@ func (r *StatusPrioritiesRepositoryPostgres) StatusExist(ctx context.Context, st
 	return ok, err
 }
 
-func (r *StatusPrioritiesRepositoryPostgres) PrioritiesExist(ctx context.Context, priorityID, userID int) (bool, error) {
+func (r *StatusPrioritiesRepositoryPostgres) PrioritiesExist(ctx context.Context, priorityID, userID string) (bool, error) {
 	var ok bool
 	query := `
 	SELECT EXISTS (
