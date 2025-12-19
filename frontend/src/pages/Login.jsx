@@ -9,15 +9,26 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     setErr("");
+    setLoading(true);
+
     try {
-      login({ email, password });
+      await login({ email, password });
       navigate("/home", { replace: true });
     } catch (e) {
-      setErr(e.message || "Login gagal");
+      // coba ambil error dari axios response
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data ||
+        e?.message ||
+        "Login gagal";
+      setErr(String(msg));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,7 +38,11 @@ export default function Login() {
         <h1 className="text-2xl font-bold text-primary">Login</h1>
         <p className="mt-1 text-sm text-primary/70">Masuk untuk melihat task milikmu.</p>
 
-        {err ? <div className="mt-3 rounded-xl bg-red-50 border border-red-200 p-3 text-sm font-semibold text-red-700">{err}</div> : null}
+        {err ? (
+          <div className="mt-3 rounded-xl bg-red-50 border border-red-200 p-3 text-sm font-semibold text-red-700">
+            {err}
+          </div>
+        ) : null}
 
         <form onSubmit={submit} className="mt-4 space-y-3">
           <div>
@@ -37,6 +52,7 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 w-full rounded-xl border border-accent/60 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
               placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
 
@@ -48,11 +64,18 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full rounded-xl border border-accent/60 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
               placeholder="••••••••"
+              autoComplete="current-password"
             />
           </div>
 
-          <button className="w-full rounded-xl bg-secondary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition">
-            Login
+          <button
+            disabled={loading}
+            className={[
+              "w-full rounded-xl px-4 py-2 text-sm font-semibold text-white transition",
+              loading ? "bg-secondary/60 cursor-not-allowed" : "bg-secondary hover:opacity-90",
+            ].join(" ")}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

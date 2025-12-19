@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { api } from "../lib/api.js";
 
 const AppContext = createContext(null);
 
-const LS_USERS = "tm_users";
 const LS_SESSION = "tm_session";
 const LS_DB = "tm_db";
 
@@ -19,15 +19,14 @@ function saveJSON(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-function seedIfEmpty() {
-  // Seed DB
+function seedDbIfEmpty() {
   const db = loadJSON(LS_DB, null);
   if (!db) {
-    const initial = {
-      // categories dibuat user, jadi default kosong
-      categories: [], // { id, user_id, name }
+    saveJSON(LS_DB, {
+      // kategori dibuat user
+      categories: [], // { id, user_id, name, created_at }
 
-      // FIXED seperti BE (master data)
+      // fixed seperti BE (sementara FE pakai local)
       statuses: [
         { id: "1", name: "Todo" },
         { id: "2", name: "Doing" },
@@ -39,79 +38,53 @@ function seedIfEmpty() {
         { id: "3", name: "High" },
       ],
 
-      tasks: [], // { id, user_id, title, ... }
-    };
-    saveJSON(LS_DB, initial);
-  }
-
-  // Seed Users (demo user)
-  const users = loadJSON(LS_USERS, null);
-  if (!Array.isArray(users) || users.length === 0) {
-    saveJSON(LS_USERS, [
-      { id: "u1", name: "Demo User", email: "demo@demo.com", password: "demo" },
-    ]);
-    return;
-  }
-
-  const hasDemo = users.some((u) => (u.email || "").toLowerCase() === "demo@demo.com");
-  if (!hasDemo) {
-    saveJSON(LS_USERS, [
-      ...users,
-      { id: "u1", name: "Demo User", email: "demo@demo.com", password: "demo" },
-    ]);
+      tasks: [], // { id, user_id, title, description, category_id, status_id, priority_id, due_date, created_at }
+    });
   }
 }
 
 export function AppProvider({ children }) {
-  useEffect(() => seedIfEmpty(), []);
+  useEffect(() => seedDbIfEmpty(), []);
 
-  const [users, setUsers] = useState(() => loadJSON(LS_USERS, []));
   const [session, setSession] = useState(() => loadJSON(LS_SESSION, null));
   const [db, setDb] = useState(() =>
     loadJSON(LS_DB, { categories: [], statuses: [], priorities: [], tasks: [] })
   );
 
-  useEffect(() => saveJSON(LS_USERS, users), [users]);
   useEffect(() => saveJSON(LS_SESSION, session), [session]);
   useEffect(() => saveJSON(LS_DB, db), [db]);
 
-  const api = useMemo(() => {
+  const value = useMemo(() => {
     return {
-      // ---- auth ----
+      // ========== AUTH (integrated to BE) ==========
       session,
-      user: session ? users.find((u) => u.id === session.userId) : null,
+      user: session?.user || null,
 
-      register({ name, email, password }) {
-        const exists = users.some((u) => u.email.toLowerCase() === email.toLowerCase());
-        if (exists) throw new Error("Email sudah terdaftar.");
+      async register({ name, email, password }) {
+        // BE: POST /register -> tidak mengembalikan token
+        await api.post("/register", { name, email, password });
 
-        const newUser = {
-          id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()),
-          name: name.trim(),
-          email: email.trim(),
-          password, // UI-only
-        };
+        // Auto-login setelah register agar dapat token
+        const res = await api.post("/login", { email, password });
+        const data = res.data; // { token, user }
 
-        setUsers((prev) => [newUser, ...prev]);
-        setSession({ userId: newUser.id, token: "mock-token" });
+        setSession({ token: data.token, user: data.user });
       },
 
-      login({ email, password }) {
-        const u = users.find((x) => x.email.toLowerCase() === email.toLowerCase());
-        if (!u) throw new Error("Email tidak ditemukan.");
-        if (u.password !== password) throw new Error("Password salah.");
-        setSession({ userId: u.id, token: "mock-token" });
+      async login({ email, password }) {
+        const res = await api.post("/login", { email, password });
+        const data = res.data; // { token, user }
+        setSession({ token: data.token, user: data.user });
       },
 
       logout() {
         setSession(null);
       },
 
-      // ---- fixed master data ----
+      // ========== UI-ONLY DATA (localStorage sementara) ==========
       statuses: db.statuses || [],
       priorities: db.priorities || [],
 
-      // ---- categories per user ----
       categoriesForUser(userId) {
         return (db.categories || []).filter((c) => c.user_id === userId);
       },
@@ -125,7 +98,6 @@ export function AppProvider({ children }) {
           (c) => c.user_id === userId && (c.name || "").toLowerCase() === v.toLowerCase()
         );
         if (exists) {
-          // return existing id
           const found = (db.categories || []).find(
             (c) => c.user_id === userId && (c.name || "").toLowerCase() === v.toLowerCase()
           );
@@ -143,7 +115,6 @@ export function AppProvider({ children }) {
         return newCat.id;
       },
 
-      // ---- tasks per user ----
       tasksForUser(userId) {
         return (db.tasks || []).filter((t) => t.user_id === userId);
       },
@@ -156,9 +127,11 @@ export function AppProvider({ children }) {
           description: payload.description?.trim() || "",
           category_id: payload.category_id || "",
 
-          // fixed master data ids (string)
+          // fixed ids
           status_id: payload.status_id || (db.statuses?.[0]?.id || "1"),
-          priority_id: payload.priority_id || (db.priorities?.[1]?.id || db.priorities?.[0]?.id || "2"),
+          priority_id:
+            payload.priority_id ||
+            (db.priorities?.[1]?.id || db.priorities?.[0]?.id || "2"),
 
           due_date: payload.due_date || "",
           created_at: new Date().toISOString(),
@@ -174,9 +147,9 @@ export function AppProvider({ children }) {
         }));
       },
     };
-  }, [users, session, db]);
+  }, [session, db]);
 
-  return <AppContext.Provider value={api}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {
