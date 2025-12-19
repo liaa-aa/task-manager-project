@@ -1,37 +1,90 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
-import { logout, getSession } from "../services/auth.service.js";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 export default function DashboardLayout() {
-  const nav = useNavigate();
-  const session = getSession();
+  const navigate = useNavigate();
 
   const onLogout = () => {
-    logout();
-    nav("/login", { replace: true });
+    // UI-only dummy logout
+    navigate("/login", { replace: true });
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", minHeight: "100vh" }}>
-      <aside style={{ padding: 16, borderRight: "1px solid #ddd" }}>
-        <div style={{ marginBottom: 12, fontWeight: 700 }}>Task Manager</div>
-        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 16 }}>
-          {session?.user?.name} ({session?.user?.email})
+    <div className="min-h-screen grid grid-cols-[260px_1fr] bg-base">
+      {/* SIDEBAR */}
+      <aside className="bg-primary text-white flex flex-col px-3 py-4">
+        {/* BRAND */}
+        <div className="mb-7 px-3">
+          <h1 className="text-xl font-bold tracking-wide">Task Manager</h1>
+          <p className="text-xs opacity-70">UI Version</p>
         </div>
 
-        <nav style={{ display: "grid", gap: 8 }}>
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/tasks">Tasks</Link>
-          <Link to="/categories">Categories</Link>
-        </nav>
+        {/* MAIN MENU */}
+        <MenuSection title="MAIN">
+          <SidebarLink to="/dashboard" label="Dashboard" />
+          <SidebarLink to="/tasks" label="Tasks" />
+          <SidebarLink to="/categories" label="Categories" />
+        </MenuSection>
 
-        <button onClick={onLogout} style={{ marginTop: 16 }}>
-          Logout
-        </button>
+        {/* MASTER DATA */}
+        <MenuSection title="MASTER DATA">
+          <SidebarLink to="/statuses" label="Statuses" />
+          <SidebarLink to="/priorities" label="Priorities" />
+        </MenuSection>
+
+        {/* FOOTER */}
+        <div className="mt-auto px-3">
+          <button
+            onClick={onLogout}
+            className="w-full rounded-lg bg-secondary py-2 text-sm font-semibold text-white hover:opacity-90 transition"
+          >
+            Logout
+          </button>
+        </div>
       </aside>
 
-      <main style={{ padding: 16 }}>
+      {/* CONTENT */}
+      <main className="bg-base p-6">
+        {/* Optional header area */}
+        <div className="mb-4 rounded-xl border border-accent/60 bg-accent/25 px-4 py-3">
+          <p className="text-primary font-semibold">Welcome 👋</p>
+          <p className="text-primary/80 text-sm">
+            Kelola task kamu dengan cepat dan rapi.
+          </p>
+        </div>
+
         <Outlet />
       </main>
     </div>
+  );
+}
+
+/* ---------------------------- */
+/* Reusable Sidebar Components */
+/* ---------------------------- */
+
+function MenuSection({ title, children }) {
+  return (
+    <div className="mb-6">
+      <div className="px-3 mb-2 text-[11px] font-bold tracking-widest opacity-70">
+        {title}
+      </div>
+      <div className="flex flex-col gap-1">{children}</div>
+    </div>
+  );
+}
+
+function SidebarLink({ to, label }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        [
+          "px-3 py-2 rounded-lg text-sm transition",
+          isActive ? "bg-secondary font-semibold" : "hover:bg-accent/30",
+        ].join(" ")
+      }
+    >
+      {label}
+    </NavLink>
   );
 }
