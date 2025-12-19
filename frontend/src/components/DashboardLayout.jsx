@@ -1,10 +1,11 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { logout } from "../services/auth.service.js";
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
 
   const onLogout = () => {
-    // UI-only dummy logout
+    logout(); // ✅ clear session dari storage.js
     navigate("/login", { replace: true });
   };
 
@@ -44,7 +45,7 @@ export default function DashboardLayout() {
 
       {/* CONTENT */}
       <main className="bg-base p-6">
-        {/* Optional header area */}
+        {/* Header box */}
         <div className="mb-4 rounded-xl border border-accent/60 bg-accent/25 px-4 py-3">
           <p className="text-primary font-semibold">Welcome 👋</p>
           <p className="text-primary/80 text-sm">
@@ -57,10 +58,6 @@ export default function DashboardLayout() {
     </div>
   );
 }
-
-/* ---------------------------- */
-/* Reusable Sidebar Components */
-/* ---------------------------- */
 
 function MenuSection({ title, children }) {
   return (
