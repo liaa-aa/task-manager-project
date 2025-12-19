@@ -99,7 +99,7 @@ func (s *authService) Register(ctx context.Context, name, email, password string
 			return user, nil
 	}
 
-func (s *authService) Login(ctx context.Context,email, password string,) (*AuthResponse, error) {
+func (s *authService) Login(ctx context.Context, email, password string) (*AuthResponse, error) {
 		email = strings.ToLower(strings.TrimSpace(email))
 		password = strings.TrimSpace(password)
 
