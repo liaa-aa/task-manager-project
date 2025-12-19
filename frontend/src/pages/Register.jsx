@@ -1,57 +1,78 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { register } from "../services/auth.service.js";
+import { useApp } from "../data/AppProvider.jsx";
 
 export default function Register() {
-  const nav = useNavigate();
+  const { register } = useApp();
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [err, setErr] = useState("");
 
-  const onSubmit = (e) => {
+  const submit = (e) => {
     e.preventDefault();
     setErr("");
     try {
       register({ name, email, password });
-      nav("/dashboard", { replace: true });
+      navigate("/home", { replace: true });
     } catch (e) {
       setErr(e.message || "Register gagal");
     }
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: "64px auto", padding: 16 }}>
-      <h2>Register</h2>
-      {err && <div style={{ color: "crimson", marginBottom: 8 }}>{err}</div>}
+    <div className="mx-auto w-full max-w-md p-6">
+      <div className="rounded-2xl border border-accent/60 bg-white/70 p-6 shadow-sm">
+        <h1 className="text-2xl font-bold text-primary">Register</h1>
+        <p className="mt-1 text-sm text-primary/70">Buat akun untuk mulai mengelola task.</p>
 
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: 10 }}>
-        <label>
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} style={{ width: "100%" }} />
-        </label>
+        {err ? <div className="mt-3 rounded-xl bg-red-50 border border-red-200 p-3 text-sm font-semibold text-red-700">{err}</div> : null}
 
-        <label>
-          Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: "100%" }} />
-        </label>
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-primary/80">Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-accent/60 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+              placeholder="Your name"
+            />
+          </div>
 
-        <label>
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: "100%" }}
-          />
-        </label>
+          <div>
+            <label className="text-xs font-semibold text-primary/80">Email</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-accent/60 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+              placeholder="you@example.com"
+            />
+          </div>
 
-        <button type="submit">Buat akun</button>
-      </form>
+          <div>
+            <label className="text-xs font-semibold text-primary/80">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-accent/60 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+              placeholder="••••••••"
+            />
+          </div>
 
-      <div style={{ marginTop: 12 }}>
-        Sudah punya akun? <Link to="/login">Login</Link>
+          <button className="w-full rounded-xl bg-secondary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition">
+            Create Account
+          </button>
+        </form>
+
+        <p className="mt-4 text-sm text-primary/70">
+          Sudah punya akun?{" "}
+          <Link to="/login" className="font-semibold text-secondary hover:underline">
+            Login
+          </Link>
+        </p>
       </div>
     </div>
   );
