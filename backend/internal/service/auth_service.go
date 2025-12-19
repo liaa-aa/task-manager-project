@@ -3,17 +3,21 @@ package service
 import (
 	"context"
 	"errors"
+	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/liaa-aa/task-manager-project/backend/internal/model"
 	"github.com/liaa-aa/task-manager-project/backend/internal/repository"
 )
 
 type AuthService interface {
 	Register(ctx context.Context, name, email, password string) (*model.User, error)
-	Login(ctx context.Context, email, password string) (*model.User, error)
+	Login(ctx context.Context, email, password string) (*AuthResponse, error)
 }
 
 type authService struct {
@@ -24,13 +28,46 @@ func NewAuthService(userRepository repository.UserRepository) AuthService {
 	return &authService{UserRepository: userRepository}
 }
 
-func (s *authService) Register(
-	ctx context.Context,
-	name, email, password string,
-	) (*model.User, error) {
-			name = strings.TrimSpace(name)
-			email = strings.ToLower(strings.TrimSpace(email))
-			password = strings.TrimSpace(password)
+type AuthResponse struct {
+	Token string `json:"token"`
+	User  *model.User `json:"user"`
+}
+
+type Claims struct {
+	UserID string `json:"user_id"`
+	jwt.RegisteredClaims
+}
+
+func (s *authService) GenerateJWT(userID string) (string, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", errors.New("JWT secret key is not set")
+	}
+
+	exp := 24 * time.Hour
+	if expStr := os.Getenv("JWT_EXPIRATION_HOURS"); expStr != "" {
+		if expHours, err := strconv.Atoi(expStr); err == nil {
+			exp = time.Duration(expHours) * time.Hour
+		}
+	}
+
+	now := time.Now()
+	c := &Claims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(exp)),
+		},
+	}
+
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
+	return t.SignedString([]byte(secret))
+}
+
+func (s *authService) Register(ctx context.Context, name, email, password string) (*model.User, error) {
+  	name = strings.TrimSpace(name)
+  	email = strings.ToLower(strings.TrimSpace(email))
+  	password = strings.TrimSpace(password) 
 
 			if name == "" || email == "" || password == "" {
 				return nil, errors.New("name, email, and password cannot be empty")
@@ -61,10 +98,8 @@ func (s *authService) Register(
 
 			return user, nil
 	}
-func (s *authService) Login(
-	ctx context.Context,
-	email, password string,
-	) (*model.User, error) {
+
+func (s *authService) Login(ctx context.Context,email, password string,) (*AuthResponse, error) {
 		email = strings.ToLower(strings.TrimSpace(email))
 		password = strings.TrimSpace(password)
 
@@ -83,5 +118,14 @@ func (s *authService) Login(
 		if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 			return nil, errors.New("invalid email or password")
 		}
-		return user,nil
+
+		token, err := s.GenerateJWT(user.ID)
+			if err != nil {
+				return nil, err
+			}
+
+		return &AuthResponse{
+			Token: token,
+			User:  user,
+		}, nil
 	}
