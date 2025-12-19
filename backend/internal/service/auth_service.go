@@ -18,6 +18,7 @@ import (
 type AuthService interface {
 	Register(ctx context.Context, name, email, password string) (*model.User, error)
 	Login(ctx context.Context, email, password string) (*AuthResponse, error)
+	GetAllUsers(ctx context.Context) ([]*model.User, error)
 }
 
 type authService struct {
@@ -129,3 +130,7 @@ func (s *authService) Login(ctx context.Context, email, password string) (*AuthR
 			User:  user,
 		}, nil
 	}
+
+func (s *authService) GetAllUsers(ctx context.Context) ([]*model.User, error) {
+	return s.UserRepository.GetAllUsers(ctx)
+}
