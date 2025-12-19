@@ -2,21 +2,8 @@ import { Link } from "react-router-dom";
 
 export default function HomePublic() {
   return (
-<<<<<<< HEAD
-    <div className="mx-auto w-full max-w-6xl p-6">
-      <div className="rounded-2xl border border-accent/60 bg-white/70 p-6 shadow-sm">
-        <h1 className="text-3xl font-extrabold text-primary">Task Manager</h1>
-        <p className="mt-2 text-primary/80">
-          Website untuk mencatat dan mengelola task kamu dengan rapi. Setelah login,
-          kamu bisa melihat task milikmu dan daftar task akan dikelompokkan berdasarkan kategori.
-        </p>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Link
-            to="/login"
-            className="rounded-xl bg-secondary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition"
-=======
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
+      {/* HERO */}
       <section className="grid gap-6 md:grid-cols-2 md:items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/60 px-3 py-1 text-xs font-semibold text-primary">
@@ -56,6 +43,7 @@ export default function HomePublic() {
           </div>
         </div>
 
+        {/* Preview */}
         <div className="relative">
           <div className="absolute -inset-2 rounded-3xl bg-secondary/10 blur-2xl" />
           <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-white/65 shadow-sm">
@@ -144,40 +132,74 @@ export default function HomePublic() {
         </div>
       </section>
 
-<section className="mt-12">
-  <div className="rounded-3xl border border-primary/15 bg-white/60 p-6">
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h2 className="text-2xl font-extrabold text-primary">What you get</h2>
-        <p className="mt-1 text-sm text-primary/75">
-          Fitur inti yang langsung bisa kamu pakai.
-        </p>
-      </div>
+      {/* FEATURES */}
+      <section className="mt-12">
+        <div className="rounded-3xl border border-primary/15 bg-white/60 p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-extrabold text-primary">What you get</h2>
+              <p className="mt-1 text-sm text-primary/75">
+                Fitur yang cukup untuk produktif, tanpa noise.
+              </p>
+            </div>
 
-      <Link
-        to="/register"
-        className="inline-flex items-center justify-center rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition"
-      >
-        Start Now
-      </Link>
-    </div>
+            <Link
+              to="/register"
+              className="inline-flex items-center justify-center rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition"
+            >
+              Start Now
+            </Link>
+          </div>
 
-    <div className="mt-6 grid gap-4 md:grid-cols-2">
-      <FeatureCard
-        title="Status & Priority"
-        desc="Tandai task berdasarkan progres dan tingkat kepentingannya."
-        tags={["Todo / Doing / Done", "Low / Medium / High"]}
-      />
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <FeatureCard
+              title="Status & Priority"
+              desc="Biar kamu gampang bedain mana yang urgent dan mana yang bisa nanti."
+              tags={["Todo/Doing/Done", "Low/Medium/High"]}
+            />
+            <FeatureCard
+              title="Category by User"
+              desc="Kategori bebas kamu buat sendiri sesuai kebutuhanmu."
+              tags={["Custom categories", "Grouped view"]}
+            />
+            <FeatureCard
+              title="Simple Workflow"
+              desc="Halaman ringkas: Home (list) + Add New (form)."
+              tags={["Clean UI", "No clutter"]}
+            />
+            <FeatureCard
+              title="Ready to Integrate"
+              desc="Nanti bisa dihubungkan ke backend API jika endpoint sudah siap."
+              tags={["JWT ready", "Axios setup"]}
+            />
+          </div>
+        </div>
+      </section>
 
-      <FeatureCard
-        title="Category by User"
-        desc="Buat dan kelola kategori task sesuai kebutuhanmu sendiri."
-        tags={["Custom categories", "Grouped by category"]}
-      />
-    </div>
-  </div>
-</section>
+      {/* FAQ */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-extrabold text-primary">FAQ</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <Faq
+            q="Apakah bisa dipakai tanpa akun?"
+            a="Bisa lihat landing page saja. Untuk membuat & menyimpan task, kamu perlu login."
+          />
+          <Faq
+            q="Kategori bisa dibuat sendiri?"
+            a="Ya. Kamu bisa input kategori baru saat membuat task."
+          />
+          <Faq
+            q="Status & priority bisa custom?"
+            a="Untuk sekarang mengikuti format backend (fixed) agar konsisten."
+          />
+          <Faq
+            q="Kalau belum integrasi backend gimana?"
+            a="Saat ini UI bisa jalan dulu. Nanti tinggal sambungkan API ketika endpoint tersedia."
+          />
+        </div>
+      </section>
 
+      {/* CTA */}
       <section className="mt-12">
         <div className="rounded-3xl border border-primary/15 bg-primary p-8 text-white">
           <div className="grid gap-6 md:grid-cols-2 md:items-center">
@@ -274,33 +296,20 @@ function FeatureCard({ title, desc, tags = [] }) {
           <span
             key={t}
             className="rounded-full border border-primary/15 bg-white/70 px-2 py-1 text-xs font-semibold text-primary"
->>>>>>> 16f98df (task detail)
           >
-            Login
-          </Link>
-          <Link
-            to="/register"
-            className="rounded-xl border border-accent/70 bg-accent/15 px-4 py-2 text-sm font-semibold text-primary hover:bg-accent/25 transition"
-          >
-            Register
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <FeatureCard title="Kelola Task" desc="Tambah, lihat, dan hapus task dengan cepat." />
-        <FeatureCard title="Berdasarkan Kategori" desc="Task tampil terkelompok agar lebih rapi." />
-        <FeatureCard title="Sederhana" desc="Cocok untuk submission: UI clean & mudah dipahami." />
+            {t}
+          </span>
+        ))}
       </div>
     </div>
   );
 }
 
-function FeatureCard({ title, desc }) {
+function Faq({ q, a }) {
   return (
-    <div className="rounded-2xl border border-accent/60 bg-white/70 p-5 shadow-sm">
-      <div className="text-primary font-semibold">{title}</div>
-      <div className="mt-1 text-sm text-primary/70">{desc}</div>
+    <div className="rounded-3xl border border-primary/15 bg-white/60 p-6">
+      <div className="text-sm font-extrabold text-primary">{q}</div>
+      <p className="mt-2 text-sm leading-relaxed text-primary/75">{a}</p>
     </div>
   );
 }
