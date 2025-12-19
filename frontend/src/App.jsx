@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import HomePublic from "./pages/HomePublic.jsx";
 import HomePrivate from "./pages/HomePrivate.jsx";
+import AddTask from "./pages/AddTask.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import RequireAuth from "./components/RequireAuth.jsx";
@@ -23,6 +24,15 @@ export default function App() {
           element={
             <RequireAuth>
               <HomePrivate />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/add"
+          element={
+            <RequireAuth>
+              <AddTask />
             </RequireAuth>
           }
         />

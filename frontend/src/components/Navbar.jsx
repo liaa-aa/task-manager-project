@@ -19,19 +19,26 @@ export default function Navbar() {
                 Hi, <span className="font-semibold">{user.name}</span>
               </span>
 
-              <button
-                onClick={() => navigate("/home")}
+              <Link
+                to="/home"
                 className="rounded-xl bg-accent/20 border border-accent/50 px-3 py-1.5 text-sm font-semibold hover:bg-accent/30 transition"
               >
                 Home
-              </button>
+              </Link>
+
+              <Link
+                to="/add"
+                className="rounded-xl bg-secondary px-3 py-1.5 text-sm font-semibold hover:opacity-90 transition"
+              >
+                + Add New
+              </Link>
 
               <button
                 onClick={() => {
                   logout();
                   navigate("/", { replace: true });
                 }}
-                className="rounded-xl bg-secondary px-3 py-1.5 text-sm font-semibold hover:opacity-90 transition"
+                className="rounded-xl border border-accent/50 bg-accent/20 px-3 py-1.5 text-sm font-semibold hover:bg-accent/30 transition"
               >
                 Logout
               </button>
