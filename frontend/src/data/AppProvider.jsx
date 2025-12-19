@@ -119,6 +119,15 @@ export function AppProvider({ children }) {
         return (db.tasks || []).filter((t) => t.user_id === userId);
       },
 
+      getTaskForUserById(userId, taskId) {
+  return (
+    (db.tasks || []).find(
+      (t) => t.user_id === userId && String(t.id) === String(taskId)
+    ) || null
+  );
+},
+
+
       addTask(userId, payload) {
         const newTask = {
           id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()),
