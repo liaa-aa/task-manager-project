@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
+/* Tailwind v4 - CSS-first theme tokens */
 @theme {
-  --color-primary: #0B1D51;
-  --color-secondary: #725CAD;
-  --color-accent: #8CCDEB;
-  --color-base: #FFE3A9;
+  --color-primary: #222831;
+  --color-secondary: #30475e;
+  --color-accent: #f05454;
+  --color-base: #dddddd;
 }
