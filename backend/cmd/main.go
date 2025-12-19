@@ -39,6 +39,7 @@ func main() {
 
 	r.Post("/register", authHandler.Register)
 	r.Post("/login", authHandler.Login)
+	r.Get("/users", authHandler.GetAllUsers)
 
 	port := os.Getenv("PORT")
 	if port == "" {
