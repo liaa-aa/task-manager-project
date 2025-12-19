@@ -16,7 +16,6 @@ export default function DashboardLayout() {
         {/* BRAND */}
         <div className="mb-7 px-3">
           <h1 className="text-xl font-bold tracking-wide">Task Manager</h1>
-          <p className="text-xs opacity-70">UI Version</p>
         </div>
 
         {/* MAIN MENU */}
@@ -47,7 +46,7 @@ export default function DashboardLayout() {
       <main className="bg-base p-6">
         {/* Header box */}
         <div className="mb-4 rounded-xl border border-accent/60 bg-accent/25 px-4 py-3">
-          <p className="text-primary font-semibold">Welcome 👋</p>
+          <p className="text-primary font-semibold">Welcome</p>
           <p className="text-primary/80 text-sm">
             Kelola task kamu dengan cepat dan rapi.
           </p>
