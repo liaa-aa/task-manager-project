@@ -13,7 +13,7 @@ type TaskRepository interface {
 	GetByID(ctx context.Context, taskID, userID string) (*model.Task, error)
 	Create(ctx context.Context, t *model.Task) error
 	Update(ctx context.Context, t *model.Task) error
-	Delete(ctx context.Context, userID, taskID string) error
+	Delete(ctx context.Context, taskID, userID string) error
 }
 
 type taskRepositoryPostgres struct {
@@ -152,7 +152,7 @@ func (r *taskRepositoryPostgres) Update(ctx context.Context, t *model.Task) erro
 	return nil
 }
 
-func (r *taskRepositoryPostgres) Delete(ctx context.Context, userID, taskID string) error {
+func (r *taskRepositoryPostgres) Delete(ctx context.Context, taskID, userID string) error {
 	res, err := r.db.ExecContext(ctx, `DELETE FROM tasks WHERE id=$1 AND user_id=$2`, taskID, userID)
 	if err != nil {
 		return err
