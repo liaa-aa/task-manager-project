@@ -20,13 +20,13 @@ func NewTaskHandler(taskService service.TaskService) *TaskHandler {
 }
 
 type taskReq struct {
-	CategoryID   *string `json:"category_id"`   // dari dropdown (optional)
-	CategoryName string  `json:"category_name"` // dari input (optional) -> auto-create
+	CategoryID   *string `json:"category_id"`   
+	CategoryName string  `json:"category_name"` 
 	StatusID     int     `json:"status_id"`
 	PriorityID   int     `json:"priority_id"`
 	Title        string  `json:"title"`
 	Description  *string `json:"description"`
-	DueDate      *string `json:"due_date"` // "YYYY-MM-DD" nullable
+	DueDate      *string `json:"due_date"` 
 }
 
 func parseDueDate(s *string) (*time.Time, error) {
@@ -99,7 +99,7 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	t := &model.Task{
 		UserID:      userID,
-		CategoryID:  req.CategoryID, // bisa di-override oleh category_name di service
+		CategoryID:  req.CategoryID, 
 		StatusID:    req.StatusID,
 		PriorityID:  req.PriorityID,
 		Title:       req.Title,
@@ -141,7 +141,7 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 	t := &model.Task{
 		ID:          id,
 		UserID:      userID,
-		CategoryID:  req.CategoryID, // bisa di-override oleh category_name di service
+		CategoryID:  req.CategoryID, 
 		StatusID:    req.StatusID,
 		PriorityID:  req.PriorityID,
 		Title:       req.Title,
