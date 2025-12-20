@@ -1,21 +1,17 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMemo } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useApp } from "../data/AppProvider.jsx";
 
 export default function TaskDetail() {
-  const { id } = useParams();
   const navigate = useNavigate();
-  const {
-    user,
-    getTaskForUserById,
-    deleteTask,
-    statuses,
-    priorities,
-    categoriesForUser,
-  } = useApp();
+  const { id } = useParams();
 
-  const task = getTaskForUserById(user.id, id);
-  const categories = categoriesForUser(user.id);
+  const { user, tasksForUser, categoriesForUser, statuses, priorities } = useApp();
+
+  const tasks = tasksForUser?.(user?.id) || [];
+  const task = tasks.find((t) => String(t.id) === String(id));
+
+  const categories = categoriesForUser?.(user?.id) || [];
 
   const statusNameById = useMemo(() => {
     const m = new Map();
@@ -37,18 +33,21 @@ export default function TaskDetail() {
 
   if (!task) {
     return (
-      <main className="mx-auto w-full max-w-3xl px-6 py-10">
-        <div className="rounded-3xl border border-primary/15 bg-white/60 p-8">
-          <div className="text-lg font-extrabold text-primary">Task tidak ditemukan</div>
+      <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="rounded-3xl border border-primary/10 bg-white/70 p-6">
+          <h1 className="text-xl font-black text-primary">Task not found</h1>
           <p className="mt-2 text-sm text-primary/70">
-            Task ini mungkin sudah dihapus atau bukan milik akunmu.
+            Task dengan ID ini tidak ditemukan.
           </p>
-          <Link
-            to="/home"
-            className="mt-5 inline-flex items-center justify-center rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition"
-          >
-            Back to Home
-          </Link>
+
+          <div className="mt-4">
+            <button
+              onClick={() => navigate("/home")}
+              className="rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition"
+            >
+              Back to Home
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -60,86 +59,86 @@ export default function TaskDetail() {
     ? categoryNameById.get(String(task.category_id)) || "Category"
     : "Uncategorized";
 
-  const dueLabel = task.due_date || "-";
-
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-10">
-      <div className="flex items-center justify-between">
-        <Link
-          to="/home"
-          className="rounded-xl border border-primary/15 bg-white/60 px-4 py-2 text-sm font-bold text-primary hover:bg-white/80 transition"
-        >
-          ← Back
-        </Link>
+    <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-black text-primary sm:text-2xl">Task Detail</h1>
+          <p className="mt-1 text-sm text-primary/70">
+            Detail task milikmu, format konsisten dengan card di Home.
+          </p>
+        </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate("/add")}
-            className="rounded-xl bg-accent px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition"
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Link
+            to="/home"
+            className="inline-flex w-full items-center justify-center rounded-xl border border-primary/15 bg-white/70 px-4 py-2 text-sm font-semibold text-primary hover:bg-white transition sm:w-auto"
           >
-            + Add New
-          </button>
-
-          <button
-            onClick={() => {
-              if (confirm(`Hapus task: "${task.title}"?`)) {
-                deleteTask(task.id);
-                navigate("/home", { replace: true });
-              }
-            }}
-            className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100 transition"
-          >
-            Delete
-          </button>
+            Back
+          </Link>
         </div>
       </div>
 
-      <section className="mt-6 rounded-3xl border border-primary/15 bg-white/60 p-6">
-        <div className="text-xs font-semibold text-primary/60">Task Detail</div>
-        <h1 className="mt-2 text-2xl font-black tracking-tight text-primary">
-          {task.title}
-        </h1>
+      <div className="mt-5 rounded-3xl border border-primary/10 bg-white/70 p-4 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-extrabold text-primary sm:text-2xl">
+              {task.title}
+            </h2>
 
-        <div className="mt-2 text-sm text-primary/70">
-          Deadline {dueLabel} • Priority {priorityName} • Status {statusName}
-        </div>
+            <div className="mt-2 text-xs text-primary/70">
+              Deadline {task.due_date || "-"} • Priority {priorityName} • Status {statusName}
+            </div>
 
-        <div className="mt-4 flex flex-wrap gap-2 text-xs">
-          <Badge>{statusName}</Badge>
-          <Badge>{priorityName}</Badge>
-          <Badge>Due: {dueLabel}</Badge>
-          <Badge>{categoryName}</Badge>
-        </div>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <Pill>{statusName}</Pill>
+              <Pill>{priorityName}</Pill>
+              <Pill>Due: {task.due_date || "-"}</Pill>
+              <Pill>{categoryName}</Pill>
+            </div>
+          </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <Info label="Created at" value={task.created_at ? new Date(task.created_at).toLocaleString() : "-"} />
-          <Info label="Task ID" value={String(task.id)} />
-        </div>
-
-        <div className="mt-6">
-          <div className="text-xs font-semibold text-primary/60">Description</div>
-          <div className="mt-2 rounded-2xl border border-primary/10 bg-white/70 p-4 text-sm text-primary/80">
-            {task.description ? task.description : <span className="text-primary/50">No description</span>}
+          <div className="flex gap-2 sm:flex-col sm:items-end">
+            <button
+              type="button"
+              onClick={() => navigate("/home")}
+              className="inline-flex w-full items-center justify-center rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition sm:w-auto"
+            >
+              Done
+            </button>
           </div>
         </div>
-      </section>
+
+        <div className="mt-5 rounded-2xl border border-primary/10 bg-white/70 p-4">
+          <div className="text-xs font-semibold text-primary/60">Description</div>
+          <p className="mt-2 text-sm text-primary/80">
+            {task.description ? task.description : "(No description)"}
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <InfoCard label="Category" value={categoryName} />
+          <InfoCard label="Status" value={statusName} />
+          <InfoCard label="Priority" value={priorityName} />
+        </div>
+      </div>
     </main>
   );
 }
 
-function Badge({ children }) {
+function Pill({ children }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-primary/15 bg-white/70 px-2 py-0.5 font-semibold text-primary">
+    <span className="inline-flex items-center rounded-full border border-primary/15 bg-white/70 px-2 py-1 font-semibold text-primary">
       {children}
     </span>
   );
 }
 
-function Info({ label, value }) {
+function InfoCard({ label, value }) {
   return (
-    <div className="rounded-2xl border border-primary/15 bg-white/70 p-4">
+    <div className="rounded-2xl border border-primary/10 bg-white/70 p-4">
       <div className="text-xs font-semibold text-primary/60">{label}</div>
-      <div className="mt-1 text-sm font-bold text-primary">{value}</div>
+      <div className="mt-1 text-sm font-black text-primary">{value}</div>
     </div>
   );
 }

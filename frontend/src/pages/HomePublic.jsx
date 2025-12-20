@@ -2,20 +2,20 @@ import { Link } from "react-router-dom";
 
 export default function HomePublic() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
+    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:py-12">
       {/* HERO */}
-      <section className="grid gap-6 md:grid-cols-2 md:items-center">
+      <section className="grid gap-8 lg:grid-cols-2 lg:items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/60 px-3 py-1 text-xs font-semibold text-primary">
             <span className="h-2 w-2 rounded-full bg-accent" />
             Simple • Fast • Focused
           </div>
 
-          <h1 className="mt-4 text-4xl font-black tracking-tight text-primary sm:text-5xl">
+          <h1 className="mt-4 text-3xl font-black tracking-tight text-primary sm:text-4xl lg:text-5xl">
             Manage tasks without the clutter.
           </h1>
 
-          <p className="mt-4 text-base leading-relaxed text-primary/80">
+          <p className="mt-4 text-sm leading-relaxed text-primary/80 sm:text-base">
             Task Manager membantu kamu menyusun pekerjaan harian dengan lebih rapih:
             tambah task, atur status & prioritas, dan kelompokkan berdasarkan kategori.
           </p>
@@ -36,7 +36,7 @@ export default function HomePublic() {
             </Link>
           </div>
 
-          <div className="mt-6 grid grid-cols-3 gap-3">
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <StatCard label="Fokus" value="1 App" />
             <StatCard label="Workflow" value="Todo → Done" />
             <StatCard label="Setup" value="Cepat" />
@@ -47,7 +47,7 @@ export default function HomePublic() {
         <div className="relative">
           <div className="absolute -inset-2 rounded-3xl bg-secondary/10 blur-2xl" />
           <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-white/65 shadow-sm">
-            <div className="flex items-center justify-between border-b border-primary/10 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-primary/10 px-4 py-4 sm:px-5">
               <div className="font-extrabold text-primary">Preview</div>
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-accent" />
@@ -55,7 +55,7 @@ export default function HomePublic() {
               </div>
             </div>
 
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               <div className="grid gap-3 sm:grid-cols-2">
                 <MiniCard title="Work" subtitle="3 tasks" />
                 <MiniCard title="Personal" subtitle="2 tasks" />
@@ -64,7 +64,7 @@ export default function HomePublic() {
               </div>
 
               <div className="mt-5 rounded-2xl border border-primary/10 bg-base/60 p-4">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="truncate font-bold text-primary">
                       Contoh Task: Kirim laporan mingguan
@@ -82,7 +82,7 @@ export default function HomePublic() {
 
                   <button
                     type="button"
-                    className="rounded-xl border border-primary/15 bg-white/70 px-3 py-2 text-xs font-bold text-primary hover:bg-white transition"
+                    className="w-full rounded-xl border border-primary/15 bg-white/70 px-3 py-2 text-xs font-bold text-primary hover:bg-white transition sm:w-auto"
                   >
                     Detail
                   </button>
@@ -100,10 +100,10 @@ export default function HomePublic() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="mt-12">
-        <div className="flex items-end justify-between gap-3">
+      <section className="mt-10 sm:mt-12">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-extrabold text-primary">How it works</h2>
+            <h2 className="text-xl font-extrabold text-primary sm:text-2xl">How it works</h2>
             <p className="mt-1 text-sm text-primary/75">
               Alur sederhana, tidak bikin pusing.
             </p>
@@ -133,11 +133,11 @@ export default function HomePublic() {
       </section>
 
       {/* FEATURES */}
-      <section className="mt-12">
-        <div className="rounded-3xl border border-primary/15 bg-white/60 p-6">
+      <section className="mt-10 sm:mt-12">
+        <div className="rounded-3xl border border-primary/15 bg-white/60 p-4 sm:p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-extrabold text-primary">What you get</h2>
+              <h2 className="text-xl font-extrabold text-primary sm:text-2xl">What you get</h2>
               <p className="mt-1 text-sm text-primary/75">
                 Fitur yang cukup untuk produktif, tanpa noise.
               </p>
@@ -151,6 +151,7 @@ export default function HomePublic() {
             </Link>
           </div>
 
+          {/* (Sesuai permintaanmu: hapus 2 card yang cringe) */}
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <FeatureCard
               title="Status & Priority"
@@ -162,23 +163,13 @@ export default function HomePublic() {
               desc="Kategori bebas kamu buat sendiri sesuai kebutuhanmu."
               tags={["Custom categories", "Grouped view"]}
             />
-            <FeatureCard
-              title="Simple Workflow"
-              desc="Halaman ringkas: Home (list) + Add New (form)."
-              tags={["Clean UI", "No clutter"]}
-            />
-            <FeatureCard
-              title="Ready to Integrate"
-              desc="Nanti bisa dihubungkan ke backend API jika endpoint sudah siap."
-              tags={["JWT ready", "Axios setup"]}
-            />
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="mt-12">
-        <h2 className="text-2xl font-extrabold text-primary">FAQ</h2>
+      <section className="mt-10 sm:mt-12">
+        <h2 className="text-xl font-extrabold text-primary sm:text-2xl">FAQ</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <Faq
             q="Apakah bisa dipakai tanpa akun?"
@@ -200,14 +191,14 @@ export default function HomePublic() {
       </section>
 
       {/* CTA */}
-      <section className="mt-12">
-        <div className="rounded-3xl border border-primary/15 bg-primary p-8 text-white">
+      <section className="mt-10 sm:mt-12">
+        <div className="rounded-3xl border border-primary/15 bg-primary p-6 text-white sm:p-8">
           <div className="grid gap-6 md:grid-cols-2 md:items-center">
             <div>
-              <h3 className="text-2xl font-black tracking-tight">
+              <h3 className="text-xl font-black tracking-tight sm:text-2xl">
                 Ready to get things done?
               </h3>
-              <p className="mt-2 text-white/80">
+              <p className="mt-2 text-white/80 text-sm sm:text-base">
                 Buat akun dan mulai menata task-mu dengan cara yang simple dan cepat.
               </p>
             </div>

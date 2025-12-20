@@ -4,14 +4,7 @@ import { useApp } from "../data/AppProvider.jsx";
 
 export default function AddTask() {
   const navigate = useNavigate();
-  const {
-    user,
-    createTask,
-    addCategory,
-    categoriesForUser,
-    statuses,
-    priorities,
-  } = useApp();
+  const { user, addTask, addCategory, categoriesForUser, statuses, priorities } = useApp();
 
   const categories = categoriesForUser(user.id);
 
@@ -22,66 +15,46 @@ export default function AddTask() {
   const [newCategory, setNewCategory] = useState("");
 
   const [statusId, setStatusId] = useState(statuses?.[0]?.id || "1");
-  const [priorityId, setPriorityId] = useState(
-    priorities?.[1]?.id || priorities?.[0]?.id || "2"
-  );
+  const [priorityId, setPriorityId] = useState(priorities?.[1]?.id || priorities?.[0]?.id || "2");
 
   const [dueDate, setDueDate] = useState("");
-  const [error, setError] = useState("");
 
   const canSubmit = useMemo(() => title.trim().length > 0, [title]);
 
-  const submit = async (e) => {
+  const submit = (e) => {
     e.preventDefault();
-    setError("");
-
     if (!title.trim()) return;
 
     let finalCategoryId = categoryId || "";
-    let finalCategoryName = "";
 
     const nc = newCategory.trim();
     if (nc) {
-      // simpan local agar bisa dipakai UI grouping
       finalCategoryId = addCategory(user.id, nc) || "";
-      // juga kirim ke BE sebagai category_name (kalau BE kamu handle)
-      finalCategoryName = nc;
     }
 
-    try {
-      await createTask({
-        title: title.trim(),
-        description: description.trim(),
-        category_id: finalCategoryId || null,
-        category_name: finalCategoryName || undefined,
-        status_id: statusId,
-        priority_id: priorityId,
-        due_date: dueDate || null,
-      });
+    addTask(user.id, {
+      title: title.trim(),
+      description: description.trim(),
+      category_id: finalCategoryId,
+      status_id: statusId,
+      priority_id: priorityId,
+      due_date: dueDate,
+    });
 
-      navigate("/home", { replace: true });
-    } catch (err) {
-      setError(err?.message || "Gagal membuat task");
-    }
+    navigate("/home", { replace: true });
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-6">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-primary">Add New Task</h1>
+        <h1 className="text-xl font-bold text-primary sm:text-2xl">Add New Task</h1>
         <p className="text-sm text-primary/80">
           Tambahkan task baru. Category bisa kamu buat sendiri.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-accent/60 bg-white/70 p-5 shadow-sm">
+      <div className="rounded-2xl border border-accent/60 bg-white/70 p-4 shadow-sm sm:p-5">
         <form onSubmit={submit} className="space-y-4">
-          {error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          ) : null}
-
           <div>
             <label className="text-xs font-semibold text-primary/80">Title</label>
             <input
@@ -104,6 +77,7 @@ export default function AddTask() {
             />
           </div>
 
+          {/* responsive: 1 kolom di mobile, 2 kolom mulai md */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
               <label className="text-xs font-semibold text-primary/80">Category (existing)</label>
@@ -167,7 +141,7 @@ export default function AddTask() {
               </select>
             </div>
 
-            <div>
+            <div className="md:col-span-1">
               <label className="text-xs font-semibold text-primary/80">Due Date</label>
               <input
                 type="date"
@@ -178,11 +152,11 @@ export default function AddTask() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={() => navigate("/home")}
-              className="rounded-xl border border-accent/70 bg-accent/15 px-4 py-2 text-sm font-semibold text-primary hover:bg-accent/25 transition"
+              className="w-full rounded-xl border border-accent/70 bg-accent/15 px-4 py-2 text-sm font-semibold text-primary hover:bg-accent/25 transition sm:w-auto"
             >
               Cancel
             </button>
@@ -191,7 +165,7 @@ export default function AddTask() {
               type="submit"
               disabled={!canSubmit}
               className={[
-                "rounded-xl px-4 py-2 text-sm font-semibold text-white transition",
+                "w-full rounded-xl px-4 py-2 text-sm font-semibold text-white transition sm:w-auto",
                 canSubmit ? "bg-secondary hover:opacity-90" : "bg-secondary/50 cursor-not-allowed",
               ].join(" ")}
             >

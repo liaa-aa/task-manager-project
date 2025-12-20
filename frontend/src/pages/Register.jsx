@@ -3,100 +3,158 @@ import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../data/AppProvider.jsx";
 
 export default function Register() {
-  const { register } = useApp();
   const navigate = useNavigate();
+  const { register } = useApp();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const submit = async (e) => {
     e.preventDefault();
-    setErr("");
+    setError("");
     setLoading(true);
 
     try {
       await register({ name, email, password });
       navigate("/home", { replace: true });
-    } catch (e) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.response?.data ||
-        e?.message ||
-        "Register gagal";
-      setErr(String(msg));
+    } catch (err) {
+      setError(err?.message || "Register gagal.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-md p-6">
-      <div className="rounded-2xl border border-accent/60 bg-white/70 p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-primary">Register</h1>
-        <p className="mt-1 text-sm text-primary/70">Buat akun untuk mulai mengelola task.</p>
+    <main className="min-h-[calc(100vh-64px)] bg-base">
+      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
+          {/* Left: copy */}
+          <div className="hidden lg:block">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/60 px-3 py-1 text-xs font-semibold text-primary">
+              <span className="h-2 w-2 rounded-full bg-accent" />
+              Get started
+            </div>
 
-        {err ? (
-          <div className="mt-3 rounded-xl bg-red-50 border border-red-200 p-3 text-sm font-semibold text-red-700">
-            {err}
-          </div>
-        ) : null}
+            <h1 className="mt-4 text-4xl font-black tracking-tight text-primary">
+              Create your account.
+            </h1>
 
-        <form onSubmit={submit} className="mt-4 space-y-3">
-          <div>
-            <label className="text-xs font-semibold text-primary/80">Name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-accent/60 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
-              placeholder="Your name"
-              autoComplete="name"
-            />
-          </div>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-primary/75">
+              Buat akun untuk mulai menyimpan task milikmu, membuat kategori sendiri,
+              dan mengatur status & priority.
+            </p>
 
-          <div>
-            <label className="text-xs font-semibold text-primary/80">Email</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-accent/60 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
+            <div className="mt-6 grid max-w-md grid-cols-1 gap-3 sm:grid-cols-3">
+              <InfoPill label="Custom categories" />
+              <InfoPill label="Todo → Done" />
+              <InfoPill label="Simple UI" />
+            </div>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-primary/80">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-accent/60 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
-              placeholder="••••••••"
-              autoComplete="new-password"
-            />
+          {/* Right: form */}
+          <div className="mx-auto w-full max-w-md">
+            <div className="rounded-3xl border border-primary/15 bg-white/70 p-5 shadow-sm sm:p-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-black text-primary">Register</h2>
+                <p className="mt-1 text-sm text-primary/70">
+                  Buat akun untuk mulai mengelola task.
+                </p>
+              </div>
+
+              {error ? (
+                <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm font-semibold text-primary">
+                  {error}
+                </div>
+              ) : null}
+
+              <form onSubmit={submit} className="mt-5 space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-primary/80">Name</label>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+                    placeholder="Nama kamu"
+                    autoComplete="name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-primary/80">Email</label>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+                    placeholder="nama@email.com"
+                    autoComplete="email"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-primary/80">Password</label>
+                  <input
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    type="password"
+                    className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={[
+                    "w-full rounded-xl px-4 py-2.5 text-sm font-bold text-white transition",
+                    loading ? "bg-secondary/60 cursor-not-allowed" : "bg-secondary hover:opacity-90",
+                  ].join(" ")}
+                >
+                  {loading ? "Creating..." : "Create Account"}
+                </button>
+
+                <div className="text-center text-sm text-primary/70">
+                  Sudah punya akun?{" "}
+                  <Link to="/login" className="font-bold text-primary hover:underline">
+                    Login
+                  </Link>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/home")}
+                    className="w-full rounded-xl border border-primary/15 bg-white/70 px-4 py-2 text-sm font-semibold text-primary hover:bg-white transition"
+                  >
+                    Back to Home
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Mobile helper */}
+            <div className="mt-4 rounded-2xl border border-primary/10 bg-white/50 p-4 text-xs text-primary/70 lg:hidden">
+              Setelah register, kamu akan langsung diarahkan ke Home (login state aktif).
+            </div>
           </div>
-
-          <button
-            disabled={loading}
-            className={[
-              "w-full rounded-xl px-4 py-2 text-sm font-semibold text-white transition",
-              loading ? "bg-secondary/60 cursor-not-allowed" : "bg-secondary hover:opacity-90",
-            ].join(" ")}
-          >
-            {loading ? "Creating..." : "Create Account"}
-          </button>
-        </form>
-
-        <p className="mt-4 text-sm text-primary/70">
-          Sudah punya akun?{" "}
-          <Link to="/login" className="font-semibold text-secondary hover:underline">
-            Login
-          </Link>
-        </p>
+        </div>
       </div>
+    </main>
+  );
+}
+
+function InfoPill({ label }) {
+  return (
+    <div className="rounded-2xl border border-primary/10 bg-white/70 px-3 py-2 text-center text-xs font-bold text-primary">
+      {label}
     </div>
   );
 }
