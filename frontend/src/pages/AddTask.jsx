@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTaskApi } from "../lib/taskApi.js";
-import { listCategoriesApi } from "../lib/categoryApi.js";
 import { getSession } from "../lib/api.js";
+import { listCategoriesApi, deleteCategoryApi } from "../lib/categoryApi.js";
+import CategoryDropdown from "../components/CategoryDropdown.jsx";
 
 const STATUSES = [
   { id: 1, name: "Todo" },
@@ -42,7 +43,7 @@ export default function AddTask() {
         if (!alive) return;
         setCategories(Array.isArray(data) ? data : []);
       } catch {
-
+        // ignore
       }
     }
 
@@ -72,9 +73,9 @@ export default function AddTask() {
 
       const nc = newCategory.trim();
       if (nc) {
-        payload.category_name = nc; 
+        payload.category_name = nc;
       } else if (categoryId) {
-        payload.category_id = categoryId; 
+        payload.category_id = categoryId;
       }
 
       await createTaskApi(payload);
@@ -90,9 +91,6 @@ export default function AddTask() {
     <div className="mx-auto w-full max-w-3xl px-6 py-10">
       <div className="rounded-2xl border border-black/10 bg-white/70 p-6">
         <h1 className="text-2xl font-extrabold text-primary">Add Task</h1>
-        <p className="mt-1 text-sm text-primary/70">
-          Login sebagai <b>{session?.user?.name || "User"}</b>
-        </p>
 
         {err && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -136,29 +134,43 @@ export default function AddTask() {
 
             <div>
               <label className="text-xs font-semibold text-primary/80">Category</label>
-              <select
+
+              <CategoryDropdown
+                categories={categories}
                 value={categoryId}
-                onChange={(e) => {
-                  setCategoryId(e.target.value);
-                  if (e.target.value) setNewCategory("");
-                }}
-                className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
                 disabled={newCategory.trim().length > 0}
-              >
-                <option value="">Uncategorized</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onSelect={(nextId) => {
+                  setCategoryId(nextId);
+                  if (nextId) setNewCategory("");
+                }}
+                onDelete={async (deleteId) => {
+                  try {
+                    await deleteCategoryApi(deleteId);
+
+                    setCategories((curr) =>
+                      (Array.isArray(curr) ? curr : []).filter(
+                        (c) => String(c.id) !== String(deleteId)
+                      )
+                    );
+
+                    setCategoryId((curr) =>
+                      String(curr) === String(deleteId) ? "" : curr
+                    );
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+              />
+
               <p className="mt-1 text-xs text-primary/60">
                 Pilih kategori yang sudah ada, atau buat baru di bawah.
               </p>
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-xs font-semibold text-primary/80">New Category (Optional)</label>
+              <label className="text-xs font-semibold text-primary/80">
+                New Category (Optional)
+              </label>
               <input
                 value={newCategory}
                 onChange={(e) => {

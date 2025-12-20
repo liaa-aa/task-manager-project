@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getTaskByIdApi, updateTaskApi } from "../lib/taskApi.js";
-import { listCategoriesApi } from "../lib/categoryApi.js";
+import { listCategoriesApi, deleteCategoryApi } from "../lib/categoryApi.js";
+import CategoryDropdown from "../components/CategoryDropdown.jsx";
 
 const STATUSES = [
   { id: 1, name: "Todo" },
@@ -102,7 +103,7 @@ export default function EditTask() {
       } else if (form.category_id) {
         payload.category_id = form.category_id;
       } else {
-        payload.category_id = null; 
+        payload.category_id = null;
       }
 
       await updateTaskApi(id, payload);
@@ -173,27 +174,45 @@ export default function EditTask() {
 
             <div>
               <label className="text-xs font-semibold text-primary/80">Category</label>
-              <select
-                name="category_id"
+              <CategoryDropdown
+                categories={categories}
                 value={form.category_id}
-                onChange={(e) => {
-                  onChange(e);
-                  if (e.target.value) setForm((s) => ({ ...s, new_category: "" }));
-                }}
-                className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
                 disabled={form.new_category.trim().length > 0}
-              >
-                <option value="">Uncategorized</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onSelect={(nextId) => {
+                  setForm((s) => ({
+                    ...s,
+                    category_id: nextId,
+                    new_category: nextId ? "" : s.new_category,
+                  }));
+                }}
+                onDelete={async (deleteId) => {
+                  try {
+                    await deleteCategoryApi(deleteId);
+
+                    setCategories((curr) =>
+                      (Array.isArray(curr) ? curr : []).filter(
+                        (c) => String(c.id) !== String(deleteId)
+                      )
+                    );
+
+                    setForm((s) => ({
+                      ...s,
+                      category_id:
+                        String(s.category_id) === String(deleteId)
+                          ? ""
+                          : s.category_id,
+                    }));
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+              />
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-xs font-semibold text-primary/80">New Category (optional)</label>
+              <label className="text-xs font-semibold text-primary/80">
+                New Category (optional)
+              </label>
               <input
                 type="text"
                 name="new_category"
@@ -202,7 +221,8 @@ export default function EditTask() {
                 value={form.new_category}
                 onChange={(e) => {
                   onChange(e);
-                  if (e.target.value.trim().length > 0) setForm((s) => ({ ...s, category_id: "" }));
+                  if (e.target.value.trim().length > 0)
+                    setForm((s) => ({ ...s, category_id: "" }));
                 }}
               />
               <p className="mt-1 text-xs text-primary/60">

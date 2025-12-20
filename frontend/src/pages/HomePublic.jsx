@@ -6,7 +6,6 @@ export default function HomePublic() {
       <section className="grid gap-8 lg:grid-cols-2 lg:items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/60 px-3 py-1 text-xs font-semibold text-primary">
-            <span className="h-2 w-2 rounded-full bg-accent" />
             Simple • Fast • Focused
           </div>
 
@@ -98,11 +97,8 @@ export default function HomePublic() {
           <div>
             <h2 className="text-xl font-extrabold text-primary sm:text-2xl">How it works</h2>
             <p className="mt-1 text-sm text-primary/75">
-              Alur sederhana, tidak bikin pusing.
+              Alur sederhana
             </p>
-          </div>
-          <div className="hidden sm:block text-xs font-semibold text-primary/60">
-            3 langkah • 1 tujuan: selesaiin task.
           </div>
         </div>
 
@@ -130,9 +126,6 @@ export default function HomePublic() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-xl font-extrabold text-primary sm:text-2xl">What you get</h2>
-              <p className="mt-1 text-sm text-primary/75">
-                Fitur yang cukup untuk produktif, tanpa noise.
-              </p>
             </div>
 
             <Link
@@ -146,13 +139,13 @@ export default function HomePublic() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <FeatureCard
               title="Status & Priority"
-              desc="Biar kamu gampang bedain mana yang urgent dan mana yang bisa nanti."
+              desc="Dirancang untuk mendukung produktivitas Anda secara sederhana dan efektif."
               tags={["Todo/Doing/Done", "Low/Medium/High"]}
             />
             <FeatureCard
               title="Category by User"
-              desc="Kategori bebas kamu buat sendiri sesuai kebutuhanmu."
-              tags={["Custom categories", "Grouped view"]}
+              desc="Kategori bebas sesuai kebutuhan Anda."
+              tags={["Custom categories"]}
             />
           </div>
         </div>
@@ -188,7 +181,7 @@ export default function HomePublic() {
       </section>
 
       <footer className="mt-10 pb-6 text-center text-xs text-primary/60">
-        © {new Date().getFullYear()} Task Manager • Built for a clean workflow.
+        © {new Date().getFullYear()} Task Manager
       </footer>
     </main>
   );
@@ -236,7 +229,6 @@ function StepCard({ n, title, desc }) {
     <div className="rounded-3xl border border-primary/15 bg-white/60 p-6">
       <div className="flex items-center justify-between">
         <div className="text-sm font-black text-accent">{n}</div>
-        <div className="h-2 w-2 rounded-full bg-secondary" />
       </div>
       <div className="mt-3 text-lg font-extrabold text-primary">{title}</div>
       <p className="mt-2 text-sm leading-relaxed text-primary/75">{desc}</p>
@@ -259,15 +251,6 @@ function FeatureCard({ title, desc, tags = [] }) {
           </span>
         ))}
       </div>
-    </div>
-  );
-}
-
-function Faq({ q, a }) {
-  return (
-    <div className="rounded-3xl border border-primary/15 bg-white/60 p-6">
-      <div className="text-sm font-extrabold text-primary">{q}</div>
-      <p className="mt-2 text-sm leading-relaxed text-primary/75">{a}</p>
     </div>
   );
 }

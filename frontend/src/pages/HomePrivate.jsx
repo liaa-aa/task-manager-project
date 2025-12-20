@@ -147,7 +147,7 @@ export default function HomePrivate() {
         <div className="flex flex-col gap-2 sm:flex-row">
           <Link
             to="/add"
-            className="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-3 text-sm font-bold text-white hover:opacity-90 transition"
+            className="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-3 text-sm font-bold text-white hover:opacity-70 transition"
           >
             + Add New
           </Link>
@@ -169,13 +169,6 @@ export default function HomePrivate() {
       <section className="mt-8">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-extrabold text-primary">Your Tasks</h2>
-          <button
-            type="button"
-            onClick={load}
-            className="rounded-xl border border-primary/15 bg-white/60 px-4 py-2 text-sm font-bold text-primary hover:bg-white transition"
-          >
-            Refresh
-          </button>
         </div>
 
         {loading ? (
