@@ -10,7 +10,7 @@ import (
 
 type TaskRepository interface {
 	ListByUser(ctx context.Context, userID string) ([]*model.Task, error)
-	GetByID(ctx context.Context, userID, taskID string) (*model.Task, error)
+	GetByID(ctx context.Context, taskID, userID string) (*model.Task, error)
 	Create(ctx context.Context, t *model.Task) error
 	Update(ctx context.Context, t *model.Task) error
 	Delete(ctx context.Context, userID, taskID string) error
@@ -73,7 +73,7 @@ func (r *taskRepositoryPostgres) ListByUser(ctx context.Context, userID string) 
 	return out, rows.Err()
 }
 
-func (r *taskRepositoryPostgres) GetByID(ctx context.Context, userID, taskID string) (*model.Task, error) {
+func (r *taskRepositoryPostgres) GetByID(ctx context.Context, taskID, userID string) (*model.Task, error) {
 	q := `
 		SELECT id, user_id, category_id, status_id, priority_id, title, description, due_date, created_at, updated_at
 		FROM tasks
