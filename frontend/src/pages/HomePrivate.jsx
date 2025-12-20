@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { getSession } from "../lib/api.js";
 import { getTasksApi, deleteTaskApi, updateTaskApi } from "../lib/taskApi.js";
 
-// backend butuh due_date format YYYY-MM-DD saat update
 function toYMD(dateString) {
   if (!dateString) return null;
   if (typeof dateString === "string" && dateString.includes("T")) return dateString.slice(0, 10);
@@ -12,7 +11,6 @@ function toYMD(dateString) {
 
 function sortTasksByStatus(list) {
   if (!Array.isArray(list)) return [];
-  // Todo(1) -> Doing(2) -> Done(3)
   const order = { 1: 1, 2: 2, 3: 3 };
   return [...list].sort((a, b) => {
     const sa = Number(a?.status_id) || 1;
@@ -30,7 +28,6 @@ export default function HomePrivate() {
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");
 
-  // disable perubahan status per task saat request berjalan
   const [updatingIds, setUpdatingIds] = useState(() => new Set());
 
   function markUpdating(id, on) {
@@ -69,7 +66,6 @@ export default function HomePrivate() {
       return;
     }
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => {
@@ -107,12 +103,10 @@ export default function HomePrivate() {
     const next = Number(nextStatusId);
     if (![1, 2, 3].includes(next)) return;
 
-    // jangan spam request
     if (updatingIds.has(id)) return;
 
     const prevTasks = tasks;
 
-    // optimistic update (UI langsung berubah + sorting akan pindahkan Done ke bawah)
     setTasks((curr) =>
       (Array.isArray(curr) ? curr : []).map((t) => (t?.id === id ? { ...t, status_id: next } : t))
     );
@@ -121,7 +115,6 @@ export default function HomePrivate() {
     setErrMsg("");
 
     try {
-      // backend update butuh payload lengkap + due_date format YYYY-MM-DD
       await updateTaskApi(id, {
         title: task?.title || "(untitled)",
         description: task?.description ?? null,
@@ -131,7 +124,6 @@ export default function HomePrivate() {
         category_id: task?.category_id ?? null,
       });
     } catch (err) {
-      // rollback kalau gagal
       setTasks(prevTasks);
       setErrMsg(err?.normalizedMessage || "Gagal mengubah status task.");
     } finally {
@@ -246,7 +238,6 @@ function formatDate(dateString) {
   return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-// status pill yang bisa diubah (tampil seperti badge, klik untuk pilih)
 function StatusPillSelect({ value, onChange, disabled, pillClassName }) {
   return (
     <span className={["relative inline-flex items-center", disabled ? "opacity-70" : ""].join(" ")}>
@@ -289,7 +280,6 @@ function TaskCard({ task, onDelete, onChangeStatus, isUpdating }) {
   const due = formatDate(task?.due_date || "");
   const category = task?.category_name || task?.category || "";
 
-  // Tema warna per status (Done abu-abu agar jelas beda dari Todo)
   const statusTheme =
     statusId === 3
       ? {

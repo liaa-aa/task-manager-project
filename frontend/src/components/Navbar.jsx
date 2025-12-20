@@ -53,7 +53,7 @@ export default function Navbar() {
             <>
               <NavLink
                 to="/login"
-                className="rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-70"
+                className="rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:bg-white hover:text-primary"
               >
                 Login
               </NavLink>

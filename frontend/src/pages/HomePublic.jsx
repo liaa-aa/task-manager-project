@@ -11,12 +11,12 @@ export default function HomePublic() {
           </div>
 
           <h1 className="mt-4 text-3xl font-black tracking-tight text-primary sm:text-4xl lg:text-5xl">
-            Manage tasks without the clutter.
+            A Simple Solution for Task Management.
           </h1>
 
-          <p className="mt-4 text-sm leading-relaxed text-primary/80 sm:text-base">
+          <p className="mt-4 text-sm leading-relaxed text-primary sm:text-sm">
             Task Manager membantu kamu menyusun pekerjaan harian dengan lebih rapih:
-            tambah task, atur status & prioritas, dan kelompokkan berdasarkan kategori.
+            tambah task, atur status dan mengatur prioritas.
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -52,27 +52,26 @@ export default function HomePublic() {
             </div>
 
             <div className="p-4 sm:p-5">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <MiniCard title="Work" subtitle="3 tasks" />
-                <MiniCard title="Personal" subtitle="2 tasks" />
-                <MiniCard title="Study" subtitle="4 tasks" />
-                <MiniCard title="Uncategorized" subtitle="1 task" />
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                <MiniCard title="Total Tasks" subtitle="3 tasks" />
+                <MiniCard title="Done" subtitle="2 tasks" />
+                <MiniCard title="Categories" subtitle="4 tasks" />
               </div>
 
-              <div className="mt-5 rounded-2xl border border-primary/10 bg-base/60 p-4">
+              <div className="mt-5 rounded-2xl p-4 bg-amber-100/50 text-amber-800 border-amber-200">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="truncate font-bold text-primary">
                       Contoh Task: Kirim laporan mingguan
                     </div>
                     <div className="mt-1 text-xs text-primary/70">
-                      Deadline besok • Priority High • Status Doing
+                      Deadline 09 Jan 2026 • Priority High • Status Doing
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-2 text-xs">
                       <Badge>Doing</Badge>
                       <Badge>High</Badge>
-                      <Badge>Due: 2025-01-12</Badge>
+                      <Badge>Due: 09 Jan 2026</Badge>
                     </div>
                   </div>
 
@@ -85,9 +84,8 @@ export default function HomePublic() {
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <FeaturePill label="Status & Priority" />
-                <FeaturePill label="Category Groups" />
                 <FeaturePill label="Fast Add New" />
               </div>
             </div>
