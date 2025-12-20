@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 export default function HomePublic() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:py-12">
-      {/* HERO */}
       <section className="grid gap-8 lg:grid-cols-2 lg:items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/60 px-3 py-1 text-xs font-semibold text-primary">
@@ -43,15 +42,12 @@ export default function HomePublic() {
           </div>
         </div>
 
-        {/* Preview */}
         <div className="relative">
           <div className="absolute -inset-2 rounded-3xl bg-secondary/10 blur-2xl" />
           <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-white/65 shadow-sm">
             <div className="flex items-center justify-between border-b border-primary/10 px-4 py-4 sm:px-5">
               <div className="font-extrabold text-primary">Preview</div>
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-accent" />
-                <span className="text-xs font-semibold text-primary/70">UI Mode</span>
               </div>
             </div>
 
@@ -99,7 +95,6 @@ export default function HomePublic() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section className="mt-10 sm:mt-12">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -132,7 +127,6 @@ export default function HomePublic() {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section className="mt-10 sm:mt-12">
         <div className="rounded-3xl border border-primary/15 bg-white/60 p-4 sm:p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -151,7 +145,6 @@ export default function HomePublic() {
             </Link>
           </div>
 
-          {/* (Sesuai permintaanmu: hapus 2 card yang cringe) */}
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <FeatureCard
               title="Status & Priority"
@@ -167,30 +160,6 @@ export default function HomePublic() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="mt-10 sm:mt-12">
-        <h2 className="text-xl font-extrabold text-primary sm:text-2xl">FAQ</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <Faq
-            q="Apakah bisa dipakai tanpa akun?"
-            a="Bisa lihat landing page saja. Untuk membuat & menyimpan task, kamu perlu login."
-          />
-          <Faq
-            q="Kategori bisa dibuat sendiri?"
-            a="Ya. Kamu bisa input kategori baru saat membuat task."
-          />
-          <Faq
-            q="Status & priority bisa custom?"
-            a="Untuk sekarang mengikuti format backend (fixed) agar konsisten."
-          />
-          <Faq
-            q="Kalau belum integrasi backend gimana?"
-            a="Saat ini UI bisa jalan dulu. Nanti tinggal sambungkan API ketika endpoint tersedia."
-          />
-        </div>
-      </section>
-
-      {/* CTA */}
       <section className="mt-10 sm:mt-12">
         <div className="rounded-3xl border border-primary/15 bg-primary p-6 text-white sm:p-8">
           <div className="grid gap-6 md:grid-cols-2 md:items-center">

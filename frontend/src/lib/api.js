@@ -1,33 +1,61 @@
 import axios from "axios";
 
+const BASE_URL = "http://localhost:8080";
+const LS_SESSION = "tm_session";
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
-  headers: { "Content-Type": "application/json" },
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// otomatis pasang Authorization: Bearer <token>
-api.interceptors.request.use((config) => {
+export function getSession() {
   try {
-    const raw = localStorage.getItem("tm_session");
-    if (raw) {
-      const session = JSON.parse(raw);
-      if (session?.token) {
-        config.headers.Authorization = `Bearer ${session.token}`;
-      }
-    }
-  } catch {}
-  return config;
-});
+    const raw = localStorage.getItem(LS_SESSION);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
-// normalisasi pesan error
+export function setSession(session) {
+  localStorage.setItem(LS_SESSION, JSON.stringify(session));
+}
+
+export function clearSession() {
+  localStorage.removeItem(LS_SESSION);
+}
+
+api.interceptors.request.use(
+  (config) => {
+    const session = getSession();
+    const token = session?.token;
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
-  (res) => res,
-  (err) => {
+  (response) => response,
+  (error) => {
     const msg =
-      err?.response?.data?.message ||
-      err?.response?.data?.error ||
-      err?.message ||
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      error?.message ||
       "Network error";
-    return Promise.reject(new Error(msg));
+
+    error.normalizedMessage = msg;
+
+    if (error?.response?.status === 401) {
+      clearSession();
+    }
+
+    return Promise.reject(error);
   }
 );

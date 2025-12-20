@@ -1,8 +1,14 @@
-import { Navigate } from "react-router-dom";
-import { useApp } from "../data/AppProvider.jsx";
+import { Navigate, useLocation } from "react-router-dom";
+import { getSession } from "../lib/api.js";
 
 export default function RequireAuth({ children }) {
-  const { user } = useApp();
-  if (!user) return <Navigate to="/login" replace />;
+  const location = useLocation();
+  const session = getSession();
+  const token = session?.token;
+
+  if (!token) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
   return children;
 }

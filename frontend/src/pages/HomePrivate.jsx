@@ -1,114 +1,157 @@
-import { useMemo } from "react";
-import { Link } from "react-router-dom";
-import { useApp } from "../data/AppProvider.jsx";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getSession } from "../lib/api.js";
+import { getTasksApi, deleteTaskApi } from "../lib/taskApi.js";
 
 export default function HomePrivate() {
-  const { user, tasksForUser, categoriesForUser, statuses, priorities } = useApp();
+  const navigate = useNavigate();
+  const session = getSession();
+  const user = session?.user;
 
-  const tasks = tasksForUser?.(user?.id) || [];
-  const categories = categoriesForUser?.(user?.id) || [];
+  const [tasks, setTasks] = useState([]); // harus array
+  const [loading, setLoading] = useState(true);
+  const [errMsg, setErrMsg] = useState("");
 
-  const statusNameById = useMemo(() => {
-    const m = new Map();
-    (statuses || []).forEach((s) => m.set(String(s.id), s.name));
-    return m;
-  }, [statuses]);
+  // helper: normalize response -> array
+  function normalizeTasks(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.tasks)) return data.tasks;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  }
 
-  const priorityNameById = useMemo(() => {
-    const m = new Map();
-    (priorities || []).forEach((p) => m.set(String(p.id), p.name));
-    return m;
-  }, [priorities]);
-
-  const categoryNameById = useMemo(() => {
-    const m = new Map();
-    (categories || []).forEach((c) => m.set(String(c.id), c.name));
-    return m;
-  }, [categories]);
-
-  const grouped = useMemo(() => {
-    const map = new Map();
-    for (const t of tasks) {
-      const key = t.category_id ? String(t.category_id) : "uncat";
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(t);
+  async function load() {
+    setLoading(true);
+    setErrMsg("");
+    try {
+      const data = await getTasksApi();
+      setTasks(normalizeTasks(data));
+    } catch (err) {
+      setTasks([]);
+      setErrMsg(err.normalizedMessage || "Gagal memuat tasks.");
+    } finally {
+      setLoading(false);
     }
-    return map;
+  }
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const stats = useMemo(() => {
+    const total = Array.isArray(tasks) ? tasks.length : 0;
+    const done = (Array.isArray(tasks) ? tasks : []).filter(
+      (t) =>
+        String(t?.status_name || "").toLowerCase() === "done" ||
+        String(t?.status || "").toLowerCase() === "done" ||
+        Number(t?.status_id) === 3
+    ).length;
+
+    // contoh: jika backend ngasih category_name / category
+    const categorySet = new Set(
+      (Array.isArray(tasks) ? tasks : [])
+        .map((t) => t?.category_name || t?.category || "")
+        .filter(Boolean)
+    );
+
+    return { total, done, categories: categorySet.size };
   }, [tasks]);
 
-  const totalTasks = tasks.length;
-  const totalCategories = categories.length;
-  const uncategorized = (grouped.get("uncat") || []).length;
+  async function onDelete(id) {
+    if (!id) return;
+    try {
+      await deleteTaskApi(id);
+      // refresh list
+      await load();
+    } catch (err) {
+      setErrMsg(err.normalizedMessage || "Gagal menghapus task.");
+    }
+  }
+
+  if (!user) return null;
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-      {/* Top */}
-      <section className="rounded-3xl border border-primary/10 bg-base p-4 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="text-sm text-primary/70">Welcome back,</div>
-            <h1 className="text-2xl font-black text-primary sm:text-3xl">
-              {user?.name || "User"}
-            </h1>
-            <p className="mt-1 text-sm text-primary/75">
-              Berikut daftar task kamu yang dikelompokkan berdasarkan kategori.
-            </p>
-          </div>
+    <main className="mx-auto w-full max-w-6xl px-6 py-10">
+      {/* header */}
+      <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div className="text-sm text-primary/70">Welcome back,</div>
+          <h1 className="text-3xl font-black text-primary">{user?.name || "User"}</h1>
+          <p className="mt-2 text-sm text-primary/70">
+            Berikut daftar task kamu. Tambah task baru lewat halaman <b>Add New</b>.
+          </p>
+        </div>
 
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Link
             to="/add"
-            className="inline-flex w-full items-center justify-center rounded-xl bg-accent px-5 py-3 text-sm font-bold text-white hover:opacity-90 transition sm:w-auto"
+            className="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-3 text-sm font-bold text-white hover:opacity-90 transition"
           >
             + Add New
           </Link>
         </div>
-
-        {/* Stats */}
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <StatCard label="Total Task" value={totalTasks} />
-          <StatCard label="Categories" value={totalCategories} />
-          <StatCard label="Uncategorized" value={uncategorized} />
-        </div>
       </section>
 
-      {/* Groups */}
-      <section className="mt-6 grid gap-4">
-        {[...grouped.entries()].map(([catId, list]) => {
-          const title = catId === "uncat" ? "Uncategorized" : categoryNameById.get(catId) || "Category";
-          return (
-            <div
-              key={catId}
-              className="rounded-3xl border border-primary/10 bg-white/70 p-4 sm:p-5"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-base font-extrabold text-primary sm:text-lg">
-                  {title}
-                </div>
-                <div className="text-xs font-semibold text-primary/60">
-                  {list.length} task
-                </div>
-              </div>
+      {/* stats */}
+      <section className="mt-6 grid gap-4 sm:grid-cols-3">
+        <StatCard label="Total Tasks" value={stats.total} />
+        <StatCard label="Done" value={stats.done} />
+        <StatCard label="Categories" value={stats.categories} />
+      </section>
 
-              <div className="mt-4 grid gap-3">
-                {list.length === 0 ? (
-                  <div className="rounded-2xl border border-primary/10 bg-white/60 p-4 text-sm text-primary/70">
-                    Belum ada task di kategori ini.
-                  </div>
-                ) : (
-                  list.map((t) => (
-                    <TaskCard
-                      key={t.id}
-                      task={t}
-                      categoryName={title}
-                      statusName={statusNameById.get(String(t.status_id)) || "Todo"}
-                      priorityName={priorityNameById.get(String(t.priority_id)) || "Medium"}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
-          );
-        })}
+      {/* error */}
+      {errMsg ? (
+        <div className="mt-6 rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm font-semibold text-primary">
+          {errMsg}
+        </div>
+      ) : null}
+
+      {/* content */}
+      <section className="mt-8">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-xl font-extrabold text-primary">Your tasks</h2>
+          <button
+            type="button"
+            onClick={load}
+            className="rounded-xl border border-primary/15 bg-white/60 px-4 py-2 text-sm font-bold text-primary hover:bg-white transition"
+          >
+            Refresh
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="mt-4 rounded-2xl border border-primary/15 bg-white/60 p-5 text-sm text-primary/70">
+            Loading tasks...
+          </div>
+        ) : null}
+
+        {!loading && (!tasks || tasks.length === 0) ? (
+          <div className="mt-4 rounded-2xl border border-primary/15 bg-white/60 p-6">
+            <div className="text-lg font-extrabold text-primary">Belum ada task</div>
+            <p className="mt-2 text-sm text-primary/70">
+              Klik <b>Add New</b> untuk membuat task pertamamu.
+            </p>
+            <Link
+              to="/add"
+              className="mt-4 inline-flex items-center justify-center rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition"
+            >
+              Create Task
+            </Link>
+          </div>
+        ) : null}
+
+        {!loading && Array.isArray(tasks) && tasks.length > 0 ? (
+          <div className="mt-4 grid gap-4">
+            {tasks.map((t) => (
+              <TaskCard key={t.id || `${t.title}-${t.created_at}`} task={t} onDelete={onDelete} />
+            ))}
+          </div>
+        ) : null}
       </section>
     </main>
   );
@@ -116,54 +159,78 @@ export default function HomePrivate() {
 
 function StatCard({ label, value }) {
   return (
-    <div className="rounded-2xl border border-primary/10 bg-white/70 p-4">
+    <div className="rounded-2xl border border-primary/15 bg-white/60 p-4">
       <div className="text-xs font-semibold text-primary/60">{label}</div>
       <div className="mt-1 text-2xl font-black text-primary">{value}</div>
     </div>
   );
 }
 
-function TaskCard({ task, statusName, priorityName, categoryName }) {
+function Badge({ children }) {
   return (
-    <div className="rounded-3xl border border-primary/10 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="truncate text-base font-extrabold text-primary sm:text-lg">
-            {task.title}
-          </div>
-          <div className="mt-1 text-xs text-primary/70">
-            Deadline {task.due_date || "-"} • Priority {priorityName} • Status {statusName}
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2 text-xs">
-            <Pill>{statusName}</Pill>
-            <Pill>{priorityName}</Pill>
-            <Pill>Due: {task.due_date || "-"}</Pill>
-            <Pill>{categoryName}</Pill>
-          </div>
-
-          {task.description ? (
-            <p className="mt-3 text-sm text-primary/75">{task.description}</p>
-          ) : null}
-        </div>
-
-        <div className="flex w-full gap-2 sm:w-auto sm:flex-col sm:items-end">
-          <Link
-            to={`/task/${task.id}`}
-            className="inline-flex w-full items-center justify-center rounded-xl border border-primary/15 bg-white/70 px-4 py-2 text-sm font-semibold text-primary hover:bg-white transition sm:w-auto"
-          >
-            Detail
-          </Link>
-        </div>
-      </div>
-    </div>
+    <span className="inline-flex items-center rounded-full border border-primary/15 bg-white/70 px-2 py-0.5 text-xs font-semibold text-primary">
+      {children}
+    </span>
   );
 }
 
-function Pill({ children }) {
+function TaskCard({ task, onDelete }) {
+  const title = task?.title || "(untitled)";
+  const desc = task?.description || "";
+
+  // backend bisa mengirim status_name / priority_name, atau cuma *_id
+  const status =
+    task?.status_name ||
+    task?.status ||
+    (Number(task?.status_id) === 1 ? "Todo" : Number(task?.status_id) === 2 ? "Doing" : "Done");
+
+  const priority =
+    task?.priority_name ||
+    task?.priority ||
+    (Number(task?.priority_id) === 1 ? "Low" : Number(task?.priority_id) === 2 ? "Medium" : "High");
+
+  const due = task?.due_date || "";
+  const category = task?.category_name || task?.category || "";
+
   return (
-    <span className="inline-flex items-center rounded-full border border-primary/15 bg-white/70 px-2 py-1 font-semibold text-primary">
-      {children}
-    </span>
+    <div className="rounded-3xl border border-primary/15 bg-white/70 p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="truncate text-lg font-extrabold text-primary">{title}</div>
+          <div className="mt-1 text-xs text-primary/70">
+            {due ? `Deadline ${due} • ` : ""}
+            Priority {priority} • Status {status}
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge>{status}</Badge>
+            <Badge>{priority}</Badge>
+            {due ? <Badge>Due: {due}</Badge> : null}
+            {category ? <Badge>{category}</Badge> : <Badge>Uncategorized</Badge>}
+          </div>
+
+          {desc ? (
+            <p className="mt-3 text-sm leading-relaxed text-primary/75">{desc}</p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Link
+            to={`/task/${task?.id}`}
+            className="rounded-xl border border-primary/15 bg-white/70 px-3 py-2 text-xs font-bold text-primary hover:bg-white transition text-center"
+          >
+            Detail
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => onDelete(task?.id)}
+            className="rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-xs font-bold text-primary hover:bg-accent/15 transition"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
