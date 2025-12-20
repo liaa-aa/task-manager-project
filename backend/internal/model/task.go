@@ -6,6 +6,7 @@ type Task struct {
 	ID          string     `json:"id"`
 	UserID      string     `json:"user_id"`
 	CategoryID  *string    `json:"category_id,omitempty"`
+	CategoryName *string    `json:"category_name,omitempty"`
 	StatusID    int        `json:"status_id"`
 	PriorityID  int        `json:"priority_id"`
 	Title       string     `json:"title"`

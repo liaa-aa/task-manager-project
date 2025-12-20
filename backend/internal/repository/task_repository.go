@@ -26,10 +26,12 @@ func NewTaskRepository(db *sql.DB) TaskRepository {
 
 func (r *taskRepositoryPostgres) ListByUser(ctx context.Context, userID string) ([]*model.Task, error) {
 	q := `
-		SELECT id, user_id, category_id, status_id, priority_id, title, description, due_date, created_at, updated_at
-		FROM tasks
-		WHERE user_id=$1
-		ORDER BY created_at DESC
+		SELECT t.id, t.user_id, t.category_id, c.name AS category_name,
+		       t.status_id, t.priority_id, t.title, t.description, t.due_date, t.created_at, t.updated_at
+		FROM tasks t
+		LEFT JOIN categories c ON t.category_id = c.id
+		WHERE t.user_id=$1
+		ORDER BY t.created_at DESC
 	`
 	rows, err := r.db.QueryContext(ctx, q, userID)
 	if err != nil {
@@ -41,12 +43,13 @@ func (r *taskRepositoryPostgres) ListByUser(ctx context.Context, userID string) 
 	for rows.Next() {
 		var t model.Task
 		var cat sql.NullString
+		var categoryName sql.NullString
 		var desc sql.NullString
 		var due sql.NullTime
 		var upd sql.NullTime
 
 		if err := rows.Scan(
-			&t.ID, &t.UserID, &cat, &t.StatusID, &t.PriorityID, &t.Title, &desc, &due, &t.CreatedAt, &upd,
+			&t.ID, &t.UserID, &cat, &categoryName, &t.StatusID, &t.PriorityID, &t.Title, &desc, &due, &t.CreatedAt, &upd,
 		); err != nil {
 			return nil, err
 		}
@@ -54,6 +57,10 @@ func (r *taskRepositoryPostgres) ListByUser(ctx context.Context, userID string) 
 		if cat.Valid {
 			v := cat.String
 			t.CategoryID = &v
+		}
+		if categoryName.Valid {
+			v := categoryName.String
+			t.CategoryName = &v
 		}
 		if desc.Valid {
 			v := desc.String
@@ -75,18 +82,21 @@ func (r *taskRepositoryPostgres) ListByUser(ctx context.Context, userID string) 
 
 func (r *taskRepositoryPostgres) GetByID(ctx context.Context, taskID, userID string) (*model.Task, error) {
 	q := `
-		SELECT id, user_id, category_id, status_id, priority_id, title, description, due_date, created_at, updated_at
-		FROM tasks
-		WHERE id=$1 AND user_id=$2
+		SELECT t.id, t.user_id, t.category_id, c.name AS category_name,
+		       t.status_id, t.priority_id, t.title, t.description, t.due_date, t.created_at, t.updated_at
+		FROM tasks t
+		LEFT JOIN categories c ON t.category_id = c.id
+		WHERE t.id=$1 AND t.user_id=$2
 	`
 	var t model.Task
 	var cat sql.NullString
+	var categoryName sql.NullString
 	var desc sql.NullString
 	var due sql.NullTime
 	var upd sql.NullTime
 
 	err := r.db.QueryRowContext(ctx, q, taskID, userID).Scan(
-		&t.ID, &t.UserID, &cat, &t.StatusID, &t.PriorityID, &t.Title, &desc, &due, &t.CreatedAt, &upd,
+		&t.ID, &t.UserID, &cat, &categoryName, &t.StatusID, &t.PriorityID, &t.Title, &desc, &due, &t.CreatedAt, &upd,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
@@ -98,6 +108,10 @@ func (r *taskRepositoryPostgres) GetByID(ctx context.Context, taskID, userID str
 	if cat.Valid {
 		v := cat.String
 		t.CategoryID = &v
+	}
+	if categoryName.Valid {
+		v := categoryName.String
+		t.CategoryName = &v
 	}
 	if desc.Valid {
 		v := desc.String
