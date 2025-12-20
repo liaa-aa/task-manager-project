@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://task-manager.hanstudio.dev/";
 const LS_SESSION = "tm_session";
 
 export const api = axios.create({
