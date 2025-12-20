@@ -23,6 +23,7 @@ func SetupRoutes(db *sql.DB) *chi.Mux {
 
 	authHandler := handler.NewAuthHandler(authService)
 	taskHandler := handler.NewTaskHandler(taskService)
+	categoryHandler := handler.NewCategoryHandler(service.NewCategoryService(categoryRepo))
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
@@ -51,6 +52,13 @@ func SetupRoutes(db *sql.DB) *chi.Mux {
 		r.Get("/{id}", taskHandler.Get)
 		r.Put("/{id}", taskHandler.Update)
 		r.Delete("/{id}", taskHandler.Delete)
+	})
+
+	r.Route("/category", func(r chi.Router) {
+		r.Use(customMiddleware.AuthMiddleware)
+		r.Get("/", categoryHandler.List)
+		r.Post("/", categoryHandler.Create)
+		r.Delete("/{id}", categoryHandler.Delete)
 	})
 
 	return r
