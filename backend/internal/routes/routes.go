@@ -30,7 +30,7 @@ func SetupRoutes(db *sql.DB) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173"},
+		AllowedOrigins: []string{"http://localhost:5173", "https://vercel.com/amaliaazzahrah03-2236s-projects/task-manager-project"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 	}))
