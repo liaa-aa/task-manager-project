@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTaskApi } from "../lib/taskApi.js";
+import { listCategoriesApi } from "../lib/categoryApi.js";
 import { getSession } from "../lib/api.js";
 
 const STATUSES = [
@@ -18,80 +19,94 @@ const PRIORITIES = [
 export default function AddTask() {
   const navigate = useNavigate();
   const session = getSession();
-  const user = session?.user;
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [statusId, setStatusId] = useState(1);
+  const [priorityId, setPriorityId] = useState(1);
 
+  const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState("");
   const [newCategory, setNewCategory] = useState("");
 
-  const [statusId, setStatusId] = useState(1);
-  const [priorityId, setPriorityId] = useState(2);
-  const [dueDate, setDueDate] = useState("");
-
-  const [errMsg, setErrMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadCategories() {
+      try {
+        const data = await listCategoriesApi();
+        if (!alive) return;
+        setCategories(Array.isArray(data) ? data : []);
+      } catch {
+
+      }
+    }
+
+    loadCategories();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const canSubmit = useMemo(() => title.trim().length > 0, [title]);
 
-  async function submit(e) {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit || loading) return;
 
-    setErrMsg("");
     setLoading(true);
+    setErr("");
 
     try {
       const payload = {
         title: title.trim(),
-        description: description.trim() || "",
+        description: description.trim() ? description.trim() : null,
+        due_date: dueDate || null,
         status_id: Number(statusId),
         priority_id: Number(priorityId),
-        due_date: dueDate || "",
       };
 
       const nc = newCategory.trim();
-      if (nc) payload.category_name = nc;
-
-      if (!nc && categoryId) payload.category_id = categoryId;
+      if (nc) {
+        payload.category_name = nc; 
+      } else if (categoryId) {
+        payload.category_id = categoryId; 
+      }
 
       await createTaskApi(payload);
-      navigate("/home", { replace: true });
-    } catch (err) {
-      setErrMsg(err.normalizedMessage || "Gagal menambah task.");
+      navigate("/home");
+    } catch (e2) {
+      setErr(e2?.normalizedMessage || "Gagal membuat task.");
     } finally {
       setLoading(false);
     }
-  }
-
-  // safety: kalau user belum login, jangan render form
-  if (!user) {
-    navigate("/login", { replace: true });
-    return null;
-  }
+  };
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-6">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-primary">Add New Task</h1>
-        <p className="text-sm text-primary/80">Tambahkan task baru.</p>
-      </div>
+    <div className="mx-auto w-full max-w-3xl px-6 py-10">
+      <div className="rounded-2xl border border-black/10 bg-white/70 p-6">
+        <h1 className="text-2xl font-extrabold text-primary">Add Task</h1>
+        <p className="mt-1 text-sm text-primary/70">
+          Login sebagai <b>{session?.user?.name || "User"}</b>
+        </p>
 
-      <div className="rounded-2xl border border-primary/15 bg-white/70 p-5 shadow-sm">
-        {errMsg ? (
-          <div className="mb-4 rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm font-semibold text-primary">
-            {errMsg}
+        {err && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {err}
           </div>
-        ) : null}
+        )}
 
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
             <label className="text-xs font-semibold text-primary/80">Title</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+              className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
               placeholder="Contoh: Kerjakan laporan"
               autoFocus
             />
@@ -102,39 +117,57 @@ export default function AddTask() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 w-full resize-none rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+              className="mt-1 w-full resize-none rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
               rows={4}
-              placeholder="(Optional) detail task..."
+              placeholder="(optional)"
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-xs font-semibold text-primary/80">
-                Category ID (optional)
-              </label>
+              <label className="text-xs font-semibold text-primary/80">Due Date</label>
               <input
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
-                placeholder="(optional) category_id existing"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
               />
-              <p className="mt-1 text-xs text-primary/60">
-                Kalau kamu tidak punya list category dari BE, boleh kosong.
-              </p>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-primary/80">New Category (optional)</label>
+              <label className="text-xs font-semibold text-primary/80">Category</label>
+              <select
+                value={categoryId}
+                onChange={(e) => {
+                  setCategoryId(e.target.value);
+                  if (e.target.value) setNewCategory("");
+                }}
+                className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+                disabled={newCategory.trim().length > 0}
+              >
+                <option value="">Uncategorized</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-primary/60">
+                Pilih kategori yang sudah ada, atau buat baru di bawah.
+              </p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-xs font-semibold text-primary/80">New Category (Optional)</label>
               <input
                 value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
-                placeholder="Contoh: Kuliah"
+                onChange={(e) => {
+                  setNewCategory(e.target.value);
+                  if (e.target.value.trim().length > 0) setCategoryId("");
+                }}
+                className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+                placeholder="Contoh: Finance"
               />
-              <p className="mt-1 text-xs text-primary/60">
-                Jika diisi, FE akan kirim <b>category_name</b> ke BE.
-              </p>
             </div>
 
             <div>
@@ -142,7 +175,7 @@ export default function AddTask() {
               <select
                 value={statusId}
                 onChange={(e) => setStatusId(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+                className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
               >
                 {STATUSES.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -157,7 +190,7 @@ export default function AddTask() {
               <select
                 value={priorityId}
                 onChange={(e) => setPriorityId(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
+                className="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
               >
                 {PRIORITIES.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -166,27 +199,16 @@ export default function AddTask() {
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="text-xs font-semibold text-primary/80">Due Date</label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-primary/15 bg-white px-3 py-2 text-sm text-primary outline-none focus:ring-2 focus:ring-accent/60"
-              />
-            </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => navigate("/home")}
-              className="rounded-xl border border-primary/20 bg-white/60 px-4 py-2 text-sm font-semibold text-primary hover:bg-white transition"
+              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-black/5"
             >
               Cancel
             </button>
-
             <button
               type="submit"
               disabled={!canSubmit || loading}

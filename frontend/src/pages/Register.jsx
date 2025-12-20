@@ -1,4 +1,3 @@
-// src/pages/Register.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerApi, loginApi } from "../lib/authApi.js";
@@ -20,7 +19,6 @@ export default function Register() {
 
     try {
       await registerApi({ name, email, password });
-      // setelah register sukses, baru login supaya dapat token
       await loginApi({ email, password });
       navigate("/home", { replace: true });
     } catch (err) {

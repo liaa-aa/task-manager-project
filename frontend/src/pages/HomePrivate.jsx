@@ -8,11 +8,10 @@ export default function HomePrivate() {
   const session = getSession();
   const user = session?.user;
 
-  const [tasks, setTasks] = useState([]); // harus array
+  const [tasks, setTasks] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");
 
-  // helper: normalize response -> array
   function normalizeTasks(data) {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.tasks)) return data.tasks;
@@ -40,7 +39,6 @@ export default function HomePrivate() {
       return;
     }
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => {
@@ -52,7 +50,6 @@ export default function HomePrivate() {
         Number(t?.status_id) === 3
     ).length;
 
-    // contoh: jika backend ngasih category_name / category
     const categorySet = new Set(
       (Array.isArray(tasks) ? tasks : [])
         .map((t) => t?.category_name || t?.category || "")
@@ -66,7 +63,6 @@ export default function HomePrivate() {
     if (!id) return;
     try {
       await deleteTaskApi(id);
-      // refresh list
       await load();
     } catch (err) {
       setErrMsg(err.normalizedMessage || "Gagal menghapus task.");
@@ -77,7 +73,6 @@ export default function HomePrivate() {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
-      {/* header */}
       <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="text-sm text-primary/70">Welcome,</div>
@@ -97,21 +92,18 @@ export default function HomePrivate() {
         </div>
       </section>
 
-      {/* stats */}
       <section className="mt-6 grid gap-4 sm:grid-cols-3">
         <StatCard label="Total Tasks" value={stats.total} />
         <StatCard label="Done" value={stats.done} />
         <StatCard label="Categories" value={stats.categories} />
       </section>
 
-      {/* error */}
       {errMsg ? (
         <div className="mt-6 rounded-2xl border border-accent/40 bg-accent/10 px-5 py-4 text-sm font-semibold text-primary">
           {errMsg}
         </div>
       ) : null}
 
-      {/* content */}
       <section className="mt-8">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-extrabold text-primary">Your Tasks</h2>
@@ -171,11 +163,22 @@ function Badge({ children }) {
   );
 }
 
+function formatDate(dateString) {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return "";
+
+  return d.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function TaskCard({ task, onDelete }) {
   const title = task?.title || "(untitled)";
   const desc = task?.description || "";
 
-  // backend bisa mengirim status_name / priority_name, atau cuma *_id
   const status =
     task?.status_name ||
     task?.status ||
@@ -186,7 +189,9 @@ function TaskCard({ task, onDelete }) {
     task?.priority ||
     (Number(task?.priority_id) === 1 ? "Low" : Number(task?.priority_id) === 2 ? "Medium" : "High");
 
-  const due = task?.due_date || "";
+  const dueRaw = task?.due_date || "";
+  const due = formatDate(dueRaw);
+
   const category = task?.category_name || task?.category || "";
 
   return (
@@ -231,3 +236,4 @@ function TaskCard({ task, onDelete }) {
     </div>
   );
 }
+
