@@ -4,7 +4,14 @@ import { useApp } from "../data/AppProvider.jsx";
 
 export default function AddTask() {
   const navigate = useNavigate();
-  const { user, addTask, addCategory, categoriesForUser, statuses, priorities } = useApp();
+  const {
+    user,
+    createTask,
+    addCategory,
+    categoriesForUser,
+    statuses,
+    priorities,
+  } = useApp();
 
   const categories = categoriesForUser(user.id);
 
@@ -15,34 +22,47 @@ export default function AddTask() {
   const [newCategory, setNewCategory] = useState("");
 
   const [statusId, setStatusId] = useState(statuses?.[0]?.id || "1");
-  const [priorityId, setPriorityId] = useState(priorities?.[1]?.id || priorities?.[0]?.id || "2");
+  const [priorityId, setPriorityId] = useState(
+    priorities?.[1]?.id || priorities?.[0]?.id || "2"
+  );
 
   const [dueDate, setDueDate] = useState("");
+  const [error, setError] = useState("");
 
   const canSubmit = useMemo(() => title.trim().length > 0, [title]);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
+    setError("");
+
     if (!title.trim()) return;
 
     let finalCategoryId = categoryId || "";
+    let finalCategoryName = "";
 
-    // kalau user isi New Category → buat category baru & pakai id-nya
     const nc = newCategory.trim();
     if (nc) {
+      // simpan local agar bisa dipakai UI grouping
       finalCategoryId = addCategory(user.id, nc) || "";
+      // juga kirim ke BE sebagai category_name (kalau BE kamu handle)
+      finalCategoryName = nc;
     }
 
-    addTask(user.id, {
-      title: title.trim(),
-      description: description.trim(),
-      category_id: finalCategoryId,
-      status_id: statusId,
-      priority_id: priorityId,
-      due_date: dueDate,
-    });
+    try {
+      await createTask({
+        title: title.trim(),
+        description: description.trim(),
+        category_id: finalCategoryId || null,
+        category_name: finalCategoryName || undefined,
+        status_id: statusId,
+        priority_id: priorityId,
+        due_date: dueDate || null,
+      });
 
-    navigate("/home", { replace: true });
+      navigate("/home", { replace: true });
+    } catch (err) {
+      setError(err?.message || "Gagal membuat task");
+    }
   };
 
   return (
@@ -56,6 +76,12 @@ export default function AddTask() {
 
       <div className="rounded-2xl border border-accent/60 bg-white/70 p-5 shadow-sm">
         <form onSubmit={submit} className="space-y-4">
+          {error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          ) : null}
+
           <div>
             <label className="text-xs font-semibold text-primary/80">Title</label>
             <input
@@ -112,7 +138,7 @@ export default function AddTask() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-primary/80">Status (fixed)</label>
+              <label className="text-xs font-semibold text-primary/80">Status</label>
               <select
                 value={statusId}
                 onChange={(e) => setStatusId(e.target.value)}
@@ -127,7 +153,7 @@ export default function AddTask() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-primary/80">Priority (fixed)</label>
+              <label className="text-xs font-semibold text-primary/80">Priority</label>
               <select
                 value={priorityId}
                 onChange={(e) => setPriorityId(e.target.value)}
