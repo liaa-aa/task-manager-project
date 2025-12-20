@@ -22,9 +22,9 @@ func (r *StatusPrioritiesRepositoryPostgres) StatusExist(ctx context.Context, st
 	var ok bool
 	query := `
 	SELECT EXISTS (
-		SELECT 1 FROM statuses WHERE id = $1 AND user_id = $2
+		SELECT 1 FROM statuses WHERE id = $1 
 	)`
-	err := r.db.QueryRowContext(ctx, query, statusID, userID).Scan(&ok)
+	err := r.db.QueryRowContext(ctx, query, statusID).Scan(&ok)
 	return ok, err
 }
 
@@ -32,8 +32,8 @@ func (r *StatusPrioritiesRepositoryPostgres) PrioritiesExist(ctx context.Context
 	var ok bool
 	query := `
 	SELECT EXISTS (
-		SELECT 1 FROM priorities WHERE id = $1 AND user_id = $2
+		SELECT 1 FROM priorities WHERE id = $1 
 	)`
-	err := r.db.QueryRowContext(ctx, query, priorityID, userID).Scan(&ok)
+	err := r.db.QueryRowContext(ctx, query, priorityID).Scan(&ok)
 	return ok, err
 }
