@@ -30,11 +30,11 @@ func SetupRoutes(db *sql.DB) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173", "https://task-manager-frontend.example.com"},
+		AllowedOrigins: []string{"http://localhost:5173", "task-manager-project-theta.vercel.app"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 	}))
-	
+
 	r.Group(func(r chi.Router) {
 		r.Post("/register", authHandler.Register)
 		r.Post("/login", authHandler.Login)
