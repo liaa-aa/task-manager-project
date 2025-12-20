@@ -75,7 +75,7 @@ export default function Login() {
           <p className="text-sm text-primary/70">
             Belum punya akun?{" "}
             <Link className="font-bold text-accent" to="/register">
-              Create Account
+              Register
             </Link>
           </p>
         </form>

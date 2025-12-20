@@ -43,7 +43,7 @@ export default function HomePublic() {
         </div>
 
         <div className="relative">
-          <div className="absolute -inset-2 rounded-3xl bg-secondary/10 blur-2xl" />
+          <div className="hidden sm:block absolute -inset-2 rounded-3xl bg-secondary/10 blur-2xl" />
           <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-white/65 shadow-sm">
             <div className="flex items-center justify-between border-b border-primary/10 px-4 py-4 sm:px-5">
               <div className="font-extrabold text-primary">Preview</div>

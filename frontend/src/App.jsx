@@ -9,6 +9,7 @@ import Register from "./pages/Register.jsx";
 import TaskDetail from "./pages/TaskDetail.jsx";
 
 import RequireAuth from "./components/RequireAuth.jsx";
+import EditTask from "./pages/EditTask.jsx";
 
 export default function App() {
   return (
@@ -16,14 +17,11 @@ export default function App() {
       <Navbar />
 
       <Routes>
-        {/* default landing */}
         <Route path="/" element={<HomePublic />} />
 
-        {/* auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* private */}
         <Route
           path="/home"
           element={
@@ -48,8 +46,16 @@ export default function App() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/task/:id/edit"
+          element={
+            <RequireAuth>
+              <EditTask />
+            </RequireAuth>
+          }
+        />
 
-        {/* fallback */}
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

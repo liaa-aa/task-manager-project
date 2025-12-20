@@ -80,10 +80,10 @@ export default function HomePrivate() {
       {/* header */}
       <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="text-sm text-primary/70">Welcome back,</div>
+          <div className="text-sm text-primary/70">Welcome,</div>
           <h1 className="text-3xl font-black text-primary">{user?.name || "User"}</h1>
           <p className="mt-2 text-sm text-primary/70">
-            Berikut daftar task kamu. Tambah task baru lewat halaman <b>Add New</b>.
+            Berikut daftar task kamu.
           </p>
         </div>
 
@@ -114,7 +114,7 @@ export default function HomePrivate() {
       {/* content */}
       <section className="mt-8">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-extrabold text-primary">Your tasks</h2>
+          <h2 className="text-xl font-extrabold text-primary">Your Tasks</h2>
           <button
             type="button"
             onClick={load}
@@ -132,10 +132,7 @@ export default function HomePrivate() {
 
         {!loading && (!tasks || tasks.length === 0) ? (
           <div className="mt-4 rounded-2xl border border-primary/15 bg-white/60 p-6">
-            <div className="text-lg font-extrabold text-primary">Belum ada task</div>
-            <p className="mt-2 text-sm text-primary/70">
-              Klik <b>Add New</b> untuk membuat task pertamamu.
-            </p>
+            <div className="text-lg font-bold text-primary">Belum ada task</div>
             <Link
               to="/add"
               className="mt-4 inline-flex items-center justify-center rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition"

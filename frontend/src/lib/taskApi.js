@@ -5,7 +5,7 @@ export async function getTasksApi() {
   return res.data; 
 }
 
-export async function getTaskApi(id) {
+export async function getTaskByIdApi(id) {
   const res = await api.get(`/task/${id}`);
   return res.data;
 }
@@ -19,3 +19,9 @@ export async function deleteTaskApi(id) {
   const res = await api.delete(`/task/${id}`);
   return res.data;
 }
+
+export async function updateTaskApi(id, payload) {
+  const res = await api.put(`/task/${id}`, payload);
+  return res.data;
+}
+

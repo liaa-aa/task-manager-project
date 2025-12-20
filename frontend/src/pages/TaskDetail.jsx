@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getTaskApi } from "../lib/taskApi.js";
+import { getTaskByIdApi } from "../lib/taskApi.js";
 
 const STATUSES = new Map([
   [1, "Todo"],
@@ -18,23 +18,42 @@ export default function TaskDetail() {
   const { id } = useParams();
   const [task, setTask] = useState(null);
   const [err, setErr] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const load = async () => {
-    setLoading(true);
-    setErr("");
-    try {
-      const data = await getTaskApi(id);
-      setTask(data);
-    } catch (e) {
-      setErr(e.normalizedMessage || "Gagal memuat detail task.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      setLoading(true);
+      setErr("");
+
+      try {
+        const data = await getTaskByIdApi(id);
+
+        if (!data || typeof data !== "object" || Array.isArray(data)) {
+          throw new Error("Invalid task response");
+        }
+
+        if (alive) setTask(data);
+      } catch (e) {
+        const msg =
+          e?.normalizedMessage ||
+          e?.response?.data?.message ||
+          "Gagal memuat detail task.";
+        if (alive) {
+          setErr(msg);
+          setTask(null);
+        }
+      } finally {
+        if (alive) setLoading(false);
+      }
+    }
+
     load();
+
+    return () => {
+      alive = false;
+    };
   }, [id]);
 
   if (loading) return <div className="p-6">Loading...</div>;
@@ -64,7 +83,9 @@ export default function TaskDetail() {
       ) : (
         <div className="rounded-2xl border border-black/10 bg-white/70 p-6">
           <div className="text-lg font-extrabold text-primary">{task.title}</div>
-          <div className="mt-2 text-sm text-primary/80">{task.description || "-"}</div>
+          <div className="mt-2 text-sm text-primary/80">
+            {task.description || "-"}
+          </div>
 
           <div className="mt-4 grid gap-2 text-sm text-primary/80">
             <div>
@@ -78,8 +99,17 @@ export default function TaskDetail() {
             </div>
             <div>
               <b>Due Date:</b>{" "}
-              {task.due_date ? new Date(task.due_date).toISOString().slice(0, 10) : "-"}
+              {task.due_date
+                ? new Date(task.due_date).toISOString().slice(0, 10)
+                : "-"}
             </div>
+
+            <Link
+              to={`/task/${id}/edit`}
+              className="mt-3 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+            >
+              Edit
+            </Link>
           </div>
         </div>
       )}
