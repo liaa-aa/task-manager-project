@@ -1,16 +1,46 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getSession } from "../lib/api.js";
-import { getTasksApi, deleteTaskApi } from "../lib/taskApi.js";
+import { getTasksApi, deleteTaskApi, updateTaskApi } from "../lib/taskApi.js";
+
+// backend butuh due_date format YYYY-MM-DD saat update
+function toYMD(dateString) {
+  if (!dateString) return null;
+  if (typeof dateString === "string" && dateString.includes("T")) return dateString.slice(0, 10);
+  return String(dateString).slice(0, 10);
+}
+
+function sortTasksByStatus(list) {
+  if (!Array.isArray(list)) return [];
+  // Todo(1) -> Doing(2) -> Done(3)
+  const order = { 1: 1, 2: 2, 3: 3 };
+  return [...list].sort((a, b) => {
+    const sa = Number(a?.status_id) || 1;
+    const sb = Number(b?.status_id) || 1;
+    return (order[sa] || 1) - (order[sb] || 1);
+  });
+}
 
 export default function HomePrivate() {
   const navigate = useNavigate();
   const session = getSession();
   const user = session?.user;
 
-  const [tasks, setTasks] = useState([]); 
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");
+
+  // disable perubahan status per task saat request berjalan
+  const [updatingIds, setUpdatingIds] = useState(() => new Set());
+
+  function markUpdating(id, on) {
+    setUpdatingIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
 
   function normalizeTasks(data) {
     if (Array.isArray(data)) return data;
@@ -27,7 +57,7 @@ export default function HomePrivate() {
       setTasks(normalizeTasks(data));
     } catch (err) {
       setTasks([]);
-      setErrMsg(err.normalizedMessage || "Gagal memuat tasks.");
+      setErrMsg(err?.normalizedMessage || "Gagal memuat tasks.");
     } finally {
       setLoading(false);
     }
@@ -39,6 +69,7 @@ export default function HomePrivate() {
       return;
     }
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = useMemo(() => {
@@ -65,11 +96,52 @@ export default function HomePrivate() {
       await deleteTaskApi(id);
       await load();
     } catch (err) {
-      setErrMsg(err.normalizedMessage || "Gagal menghapus task.");
+      setErrMsg(err?.normalizedMessage || "Gagal menghapus task.");
+    }
+  }
+
+  async function onChangeStatus(task, nextStatusId) {
+    const id = task?.id;
+    if (!id) return;
+
+    const next = Number(nextStatusId);
+    if (![1, 2, 3].includes(next)) return;
+
+    // jangan spam request
+    if (updatingIds.has(id)) return;
+
+    const prevTasks = tasks;
+
+    // optimistic update (UI langsung berubah + sorting akan pindahkan Done ke bawah)
+    setTasks((curr) =>
+      (Array.isArray(curr) ? curr : []).map((t) => (t?.id === id ? { ...t, status_id: next } : t))
+    );
+
+    markUpdating(id, true);
+    setErrMsg("");
+
+    try {
+      // backend update butuh payload lengkap + due_date format YYYY-MM-DD
+      await updateTaskApi(id, {
+        title: task?.title || "(untitled)",
+        description: task?.description ?? null,
+        due_date: toYMD(task?.due_date),
+        priority_id: Number(task?.priority_id) || 1,
+        status_id: next,
+        category_id: task?.category_id ?? null,
+      });
+    } catch (err) {
+      // rollback kalau gagal
+      setTasks(prevTasks);
+      setErrMsg(err?.normalizedMessage || "Gagal mengubah status task.");
+    } finally {
+      markUpdating(id, false);
     }
   }
 
   if (!user) return null;
+
+  const sortedTasks = useMemo(() => sortTasksByStatus(tasks), [tasks]);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
@@ -77,9 +149,7 @@ export default function HomePrivate() {
         <div>
           <div className="text-sm text-primary/70">Welcome,</div>
           <h1 className="text-3xl font-black text-primary">{user?.name || "User"}</h1>
-          <p className="mt-2 text-sm text-primary/70">
-            Berikut daftar task kamu.
-          </p>
+          <p className="mt-2 text-sm text-primary/70">Berikut daftar task kamu.</p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -122,7 +192,7 @@ export default function HomePrivate() {
           </div>
         ) : null}
 
-        {!loading && (!tasks || tasks.length === 0) ? (
+        {!loading && (!sortedTasks || sortedTasks.length === 0) ? (
           <div className="mt-4 rounded-2xl border border-primary/15 bg-white/60 p-6">
             <div className="text-lg font-bold text-primary">Belum ada task</div>
             <Link
@@ -134,10 +204,16 @@ export default function HomePrivate() {
           </div>
         ) : null}
 
-        {!loading && Array.isArray(tasks) && tasks.length > 0 ? (
+        {!loading && Array.isArray(sortedTasks) && sortedTasks.length > 0 ? (
           <div className="mt-4 grid gap-4">
-            {tasks.map((t) => (
-              <TaskCard key={t.id || `${t.title}-${t.created_at}`} task={t} onDelete={onDelete} />
+            {sortedTasks.map((t) => (
+              <TaskCard
+                key={t.id || `${t.title}-${t.created_at}`}
+                task={t}
+                onDelete={onDelete}
+                onChangeStatus={onChangeStatus}
+                isUpdating={updatingIds.has(t?.id)}
+              />
             ))}
           </div>
         ) : null}
@@ -167,52 +243,117 @@ function formatDate(dateString) {
   if (!dateString) return "";
   const d = new Date(dateString);
   if (Number.isNaN(d.getTime())) return "";
-
-  return d.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function TaskCard({ task, onDelete }) {
+// status pill yang bisa diubah (tampil seperti badge, klik untuk pilih)
+function StatusPillSelect({ value, onChange, disabled, pillClassName }) {
+  return (
+    <span className={["relative inline-flex items-center", disabled ? "opacity-70" : ""].join(" ")}>
+      <span
+        className={[
+          "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold",
+          pillClassName,
+          disabled ? "cursor-not-allowed" : "cursor-pointer",
+        ].join(" ")}
+      >
+        {value === 1 ? "Todo" : value === 2 ? "Doing" : "Done"}
+        <span className="ml-1 opacity-70">▾</span>
+      </span>
+
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        aria-label="Ubah status"
+      >
+        <option value={1}>Todo</option>
+        <option value={2}>Doing</option>
+        <option value={3}>Done</option>
+      </select>
+    </span>
+  );
+}
+
+function TaskCard({ task, onDelete, onChangeStatus, isUpdating }) {
   const title = task?.title || "(untitled)";
   const desc = task?.description || "";
 
-  const status =
-    task?.status_name ||
-    task?.status ||
-    (Number(task?.status_id) === 1 ? "Todo" : Number(task?.status_id) === 2 ? "Doing" : "Done");
-
+  const statusId = Number(task?.status_id) || 1;
   const priority =
     task?.priority_name ||
     task?.priority ||
     (Number(task?.priority_id) === 1 ? "Low" : Number(task?.priority_id) === 2 ? "Medium" : "High");
 
-  const dueRaw = task?.due_date || "";
-  const due = formatDate(dueRaw);
-
+  const due = formatDate(task?.due_date || "");
   const category = task?.category_name || task?.category || "";
 
+  // Tema warna per status (Done abu-abu agar jelas beda dari Todo)
+  const statusTheme =
+    statusId === 3
+      ? {
+          cardBg: "bg-gray-50/80",
+          cardBorder: "border-gray-200",
+          pill: "bg-gray-100 text-green-700 border-gray-200",
+        }
+      : statusId === 2
+      ? {
+          cardBg: "bg-amber-50/70",
+          cardBorder: "border-amber-200/70",
+          pill: "bg-amber-100 text-amber-800 border-amber-200",
+        }
+      : {
+          cardBg: "bg-blue-50/70",
+          cardBorder: "border-blue-200/70",
+          pill: "bg-blue-100 text-blue-800 border-blue-200",
+        };
+
+  const statusLabel = statusId === 1 ? "Todo" : statusId === 2 ? "Doing" : "Done";
+  const isDone = statusId === 3;
+
   return (
-    <div className="rounded-3xl border border-primary/15 bg-white/70 p-5 shadow-sm">
+    <div
+      className={[
+        "rounded-3xl border p-5 shadow-sm transition",
+        statusTheme.cardBg,
+        statusTheme.cardBorder,
+      ].join(" ")}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="truncate text-lg font-extrabold text-primary">{title}</div>
+          <div
+            className={[
+              "truncate text-lg font-extrabold",
+              isDone ? "text-primary/50 line-through" : "text-primary",
+            ].join(" ")}
+          >
+            {title}
+          </div>
+
           <div className="mt-1 text-xs text-primary/70">
             {due ? `Deadline ${due} • ` : ""}
-            Priority {priority} • Status {status}
+            Priority {priority} • Status {statusLabel}
+            {isUpdating ? " • updating..." : ""}
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <Badge>{status}</Badge>
+            <StatusPillSelect
+              value={statusId}
+              disabled={isUpdating}
+              onChange={(next) => onChangeStatus(task, next)}
+              pillClassName={statusTheme.pill}
+            />
+
             <Badge>{priority}</Badge>
             {due ? <Badge>Due: {due}</Badge> : null}
             {category ? <Badge>{category}</Badge> : <Badge>Uncategorized</Badge>}
           </div>
 
           {desc ? (
-            <p className="mt-3 text-sm leading-relaxed text-primary/75">{desc}</p>
+            <p className={["mt-3 text-sm leading-relaxed", isDone ? "text-primary/50" : "text-primary/75"].join(" ")}>
+              {desc}
+            </p>
           ) : null}
         </div>
 
@@ -236,4 +377,3 @@ function TaskCard({ task, onDelete }) {
     </div>
   );
 }
-

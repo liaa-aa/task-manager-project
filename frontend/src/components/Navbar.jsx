@@ -59,7 +59,7 @@ export default function Navbar() {
               </NavLink>
               <NavLink
                 to="/register"
-                className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-black font-bold hover:bg-secondary hover:text-white"
+                className="rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:bg-white hover:text-primary"
               >
                 Register
               </NavLink>
@@ -72,7 +72,7 @@ export default function Navbar() {
 
               <NavLink
                 to="/home"
-                className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-bold hover:bg-secondary hover:text-white"
+                className="rounded-xl bg-secondary px-4 py-2 text-sm font-bold text-white hover:bg-white hover:text-primary"
               >
                 Home
               </NavLink>
